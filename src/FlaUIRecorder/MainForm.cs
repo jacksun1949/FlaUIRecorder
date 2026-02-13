@@ -1,4 +1,4 @@
-﻿using FlaUI.Core;
+using FlaUI.Core;
 using FlaUIRecorder.CodeProvider.Common;
 using FlaUIRecorder.Internal;
 using System;
@@ -121,6 +121,9 @@ namespace FlaUIRecorder
             FlaUI.Core.Tools.Retry.While(() =>
            {
                process.Refresh();
+               // Check if process is still running before accessing MainWindowHandle
+               if (process.HasExited)
+                   throw new InvalidOperationException("The target application has exited before showing a main window.");
                return process.MainWindowHandle == IntPtr.Zero;
            }, timeout, new TimeSpan?(TimeSpan.FromMilliseconds(50.0)));
 
@@ -257,6 +260,10 @@ namespace FlaUIRecorder
 
         public static void BringProcessToFront(Process process)
         {
+            // Check if process is still running before accessing MainWindowHandle
+            if (process.HasExited)
+                throw new InvalidOperationException("Cannot bring an exited process to front.");
+                
             IntPtr handle = process.MainWindowHandle;
             if (NativeMethods.IsIconic(handle))
             {
@@ -318,31 +325,41 @@ namespace FlaUIRecorder
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if (!SaveProject())
-                return;
-
-            var session = new RecordSession() { StartTime = DateTime.Now };
-            _currentProject.Sessions.Add(session);
-            Process process = null;
-
-            if (rdbApplicationStart.Checked)
+            try
             {
-                process = StartAndWaitForTargetApplication(_currentProject.Executable, _currentProject.Arguments);
-                _targetProcesStartedByRecorder = process;
+                if (!SaveProject())
+                    return;
+
+                var session = new RecordSession() { StartTime = DateTime.Now };
+                _currentProject.Sessions.Add(session);
+                Process process = null;
+
+                if (rdbApplicationStart.Checked)
+                {
+                    process = StartAndWaitForTargetApplication(_currentProject.Executable, _currentProject.Arguments);
+                    _targetProcesStartedByRecorder = process;
+                }
+                else
+                {
+                    process = (Process)cboApplicationProcess.SelectedItem;
+                    _targetProcesStartedByRecorder = null;
+                }
+
+                BringProcessToFront(process);
+
+                _recorderForm = new RecorderForm();
+                _recorderForm.Initialize(_currentProject.AutomationType, _providerFactory, cboCodeProvider.SelectedItem.ToString(), this, process);
+                _recorderForm.Record();
+                _recorderForm.ShowInLowerRightCorner();
+                this.WindowState = FormWindowState.Minimized;
             }
-            else
+            catch (Exception ex)
             {
-                process = (Process)cboApplicationProcess.SelectedItem;
-                _targetProcesStartedByRecorder = null;
+                MessageBox.Show("Starting recording failed.\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Remove the just added session since recording failed
+                if (_currentProject.Sessions.Count > 0)
+                    _currentProject.Sessions.Remove(_currentProject.Sessions.Last());
             }
-
-            BringProcessToFront(process);
-
-            _recorderForm = new RecorderForm();
-            _recorderForm.Initialize(_currentProject.AutomationType, _providerFactory, cboCodeProvider.SelectedItem.ToString(), this, process);
-            _recorderForm.Record();
-            _recorderForm.ShowInLowerRightCorner();
-            this.WindowState = FormWindowState.Minimized;
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
