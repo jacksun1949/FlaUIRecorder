@@ -7,7 +7,7 @@
     <RootNamespace>FlaUIRecorder</RootNamespace>
     <ApplicationIcon>UIExplorer.ico</ApplicationIcon>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
   </PropertyGroup>
@@ -22,10 +22,13 @@
   <ItemGroup>
     <Reference Include="System.Management" />
     <Reference Include="System.Deployment" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="PresentationCore" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlaUIRecorder.CodeProvider.Common\FlaUIRecorder.CodeProvider.Common.csproj" />
+    <ProjectReference Include="..\FlaUIRecorder.CodeProvider.CSharp\FlaUIRecorder.CodeProvider.CSharp.csproj" />
+    <ProjectReference Include="..\FlaUIRecorder.CodeProvider.PowerShell\FlaUIRecorder.CodeProvider.PowerShell.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">

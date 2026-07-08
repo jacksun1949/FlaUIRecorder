@@ -60,7 +60,7 @@ namespace FlaUIRecorder.CodeProvider.Common
                 try
                 {
                     var assembly = Assembly.LoadFile(fileName);
-                    var providerTypes = assembly.ExportedTypes.Where(t => typeof(ICodeProvider).IsAssignableFrom(t));
+                    var providerTypes = assembly.ExportedTypes.Where(t => typeof(ICodeProvider).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
 
                     foreach (var providerType in providerTypes)
                     {

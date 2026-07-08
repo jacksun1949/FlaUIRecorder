@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FlaUIRecorder.CodeProvider
+namespace FlaUIRecorder.CodeProvider.Common
 {
     public static class AutomationElementExtensions
     {

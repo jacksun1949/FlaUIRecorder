@@ -16,6 +16,7 @@ namespace FlaUIRecorder
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            // Professional Segoe UI font and light theme applied per-form in constructors
             Application.Run(new MainForm());
         }
     }

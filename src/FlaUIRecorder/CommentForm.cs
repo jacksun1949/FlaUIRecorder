@@ -15,6 +15,8 @@ namespace FlaUIRecorder
         public CommentForm()
         {
             InitializeComponent();
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BackColor = System.Drawing.Color.FromArgb(245, 245, 245);
         }
 
         private void CommentForm_Load(object sender, EventArgs e)

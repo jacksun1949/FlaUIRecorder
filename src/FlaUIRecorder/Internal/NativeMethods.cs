@@ -16,6 +16,7 @@ namespace FlaUIRecorder.Internal
         public static extern bool ShowWindow(IntPtr handle, int nCmdShow);
         [System.Runtime.InteropServices.DllImport("User32.dll")]
         public static extern bool IsIconic(IntPtr handle);
-
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
     }
 }

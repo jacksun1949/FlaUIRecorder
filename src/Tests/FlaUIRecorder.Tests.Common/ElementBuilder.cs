@@ -67,6 +67,14 @@ namespace FlaUIRecorder.Tests.Common
             return this;
         }
 
+        public ElementBuilder CreateGroup()
+        {
+            _innerElement = new TestBasicAutomationElement() { ControlType = FlaUI.Core.Definitions.ControlType.Group };
+            _element = new AutomationElement(_innerElement);
+
+            return this;
+        }
+
         /// <summary>
         /// Sets the name property
         /// </summary>
@@ -76,6 +84,12 @@ namespace FlaUIRecorder.Tests.Common
         {
             _innerElement.Name = name;
 
+            return this;
+        }
+
+        public ElementBuilder WithAutomationId(string automationId)
+        {
+            _innerElement.SetPropertyValue(AutomationObjectIds.AutomationIdProperty.Id, automationId);
             return this;
         }
 

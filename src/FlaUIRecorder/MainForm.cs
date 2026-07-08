@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,9 +27,16 @@ namespace FlaUIRecorder
         private MRUManager _mruManager;
         private Process _targetProcesStartedByRecorder;
 
+        private ToolStripStatusLabel _statusLabel;
+        private ToolStripStatusLabel _errorStatusLabel;
+
         public MainForm()
         {
             InitializeComponent();
+
+            // Segoe UI 9 on a fixed-layout form (AutoScaleMode.None) — avoids shrink on restore after minimize.
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BackColor = System.Drawing.Color.FromArgb(245, 245, 245);
 
             _assemblyInformationalVersionAttribute = Assembly.GetEntryAssembly().GetCustomAttribute(typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
         }
@@ -51,6 +57,10 @@ namespace FlaUIRecorder
             CloseRecorderAndShowMainForm();
             var recordSession = _currentProject.Sessions.Last();
             recordSession.Code = code;
+            if (_recorderForm != null && _recorderForm.Actions.Count > 0)
+            {
+                recordSession.Actions.AddRange(_recorderForm.Actions);
+            }
             _currentProject.IsDirty = true;
 
             recorderProjectBindingSource.EndEdit();
@@ -134,14 +144,8 @@ namespace FlaUIRecorder
         {
             try
             {
-                using (var stream = File.OpenRead(fileName))
-                {
-                    var formatter = new BinaryFormatter();
-                    _currentProject = (RecorderProject)formatter.Deserialize(stream);
-                }
-
+                _currentProject = ProjectSerializer.Load(fileName);
                 LoadControlValuesFromProject();
-
                 _currentProject.FileName = fileName;
                 _currentProject.IsDirty = false;
                 UpdateTitle();
@@ -194,19 +198,10 @@ namespace FlaUIRecorder
 
             try
             {
-                _currentProject.FileName = fileName;
-
                 WriteControlValuesToProject();
-
-                using (var stream = File.Create(_currentProject.FileName))
-                {
-                    var formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, _currentProject);
-                }
-
+                ProjectSerializer.Save(_currentProject, fileName);
                 _currentProject.IsDirty = false;
                 UpdateTitle();
-
                 return true;
             }
             catch (Exception ex)
@@ -249,6 +244,9 @@ namespace FlaUIRecorder
 
             //_currentProject.Executable = txtApplicationPath.Text;
             _currentProject.AutomationType = GetAutomationType();
+
+            if (cboCodeProvider.SelectedItem != null)
+                _currentProject.CodeProvider = cboCodeProvider.SelectedItem.ToString();
 
             if (rdbApplicationProcess.Checked)
             {
@@ -313,9 +311,56 @@ namespace FlaUIRecorder
 
             _currentProject = new RecorderProject();
             recorderProjectBindingSource.DataSource = _currentProject;
+
+            // Add Export menu item dynamically
+            var mnuExport = new ToolStripMenuItem("Export Project...");
+            mnuExport.Click += (s, ev) => ExportProject();
+            // Assume file menu is the first drop down
+            if (menuStrip1.Items.Count > 0 && menuStrip1.Items[0] is ToolStripMenuItem fileMenu)
+            {
+                fileMenu.DropDownItems.Add(mnuExport);
+            }
             _currentProject.IsDirty = false;
             UpdateTitle();
             InitializeMru();
+
+            // Professional status bar
+            var statusStrip = new StatusStrip();
+            _statusLabel = new ToolStripStatusLabel("Ready") { Spring = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft };
+            _errorStatusLabel = new ToolStripStatusLabel("Errors: 0") { IsLink = true };
+            _errorStatusLabel.Click += ErrorStatusLabel_Click;
+            statusStrip.Items.Add(_statusLabel);
+            statusStrip.Items.Add(_errorStatusLabel);
+            statusStrip.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
+            this.Controls.Add(statusStrip);
+            statusStrip.Dock = DockStyle.Bottom;
+            RecorderErrorLog.ErrorRecorded += (s, args) => UpdateErrorStatus();
+            UpdateErrorStatus();
+        }
+
+        private void UpdateErrorStatus()
+        {
+            if (_errorStatusLabel == null)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(UpdateErrorStatus));
+                return;
+            }
+
+            _errorStatusLabel.Text = $"Errors: {RecorderErrorLog.Count}";
+        }
+
+        private void ErrorStatusLabel_Click(object sender, EventArgs e)
+        {
+            if (RecorderErrorLog.Count == 0)
+            {
+                MessageBox.Show(this, "No errors recorded.", "Error Log", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            MessageBox.Show(this, string.Join(Environment.NewLine, RecorderErrorLog.Errors), "Error Log", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void InitializeMru()
@@ -460,7 +505,57 @@ namespace FlaUIRecorder
         {
             if (lstSessions.SelectedItem != null)
             {
-                ShowRecordSession((RecordSession)lstSessions.SelectedItem);
+                var session = (RecordSession)lstSessions.SelectedItem;
+                if (session.Actions != null && session.Actions.Count > 0)
+                {
+                    var choice = MessageBox.Show("View structured actions (Yes) or raw generated code (No)?", "View Session", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    if (choice == DialogResult.Yes)
+                    {
+                        using (var form = new ActionListForm())
+                        {
+                            form.Init(session);
+                            form.ShowDialog(this);
+                        }
+                        return;
+                    }
+                    else if (choice == DialogResult.Cancel)
+                    {
+                        return;
+                    }
+                }
+                ShowRecordSession(session);
+            }
+        }
+
+        private void ExportProject()
+        {
+            using (var folderDialog = new FolderBrowserDialog())
+            {
+                folderDialog.Description = "Select folder for exported project";
+                if (folderDialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                string projectName = string.IsNullOrEmpty(_currentProject.FileName) ? "RecordedAutomation" : Path.GetFileNameWithoutExtension(_currentProject.FileName);
+                string exportDir = Path.Combine(folderDialog.SelectedPath, projectName);
+
+                try
+                {
+                    _currentProject.CodeProvider = cboCodeProvider.SelectedItem?.ToString();
+                    ProjectExporter.Export(_currentProject, exportDir, projectName);
+
+                    var result = MessageBox.Show(
+                        $"Exported project to {exportDir}\r\n\r\nOpen folder in Explorer?",
+                        "Export Complete",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Information);
+
+                    if (result == DialogResult.Yes)
+                        Process.Start("explorer.exe", exportDir);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, "Export failed.\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
