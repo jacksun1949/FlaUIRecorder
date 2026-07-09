@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUIRecorder.CodeProvider.Common;
 
 namespace FlaUIRecorder.CodeProvider.Common.Internals
 {
@@ -34,7 +35,18 @@ namespace FlaUIRecorder.CodeProvider.Common.Internals
         /// <param name="element">The according ui element.</param>
         public Variable Add(string name, AutomationElement element)
         {
-            var result = new Variable { Name = name, Element = element };
+            return Add(name, element, null, null);
+        }
+
+        public Variable Add(string name, AutomationElement element, string parentVariableName, SelectorInfo selector)
+        {
+            var result = new Variable
+            {
+                Name = name,
+                Element = element,
+                ParentVariableName = parentVariableName,
+                SelectorKey = selector?.GetCacheKey()
+            };
             Add(result);
 
             return result;
@@ -47,16 +59,31 @@ namespace FlaUIRecorder.CodeProvider.Common.Internals
         /// <returns></returns>
         public Variable Find(AutomationElement element)
         {
-            // first try by automationid, because the AutomationElement.Compare does not work in every case (especially UIA3)
+            if (element == null)
+                return null;
+
             if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
             {
-                var result = this.FirstOrDefault(v => v.Element.Properties.AutomationId.TryGetValue(out var id) && id == automationId);
+                var result = this.FirstOrDefault(v =>
+                    v.Element.Properties.AutomationId.TryGetValue(out var id)
+                    && string.Equals(id, automationId, StringComparison.Ordinal));
 
                 if (result != null)
                     return result;
             }
 
-            return this.FirstOrDefault(v => Equals(v.Element, element));
+            return this.FirstOrDefault(v => ReferenceEquals(v.Element, element));
+        }
+
+        public Variable FindByParentAndSelector(string parentVariableName, SelectorInfo selector)
+        {
+            if (selector == null || string.IsNullOrEmpty(parentVariableName))
+                return null;
+
+            var selectorKey = selector.GetCacheKey();
+            return this.FirstOrDefault(v =>
+                string.Equals(v.ParentVariableName, parentVariableName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(v.SelectorKey, selectorKey, StringComparison.Ordinal));
         }
     }
 }

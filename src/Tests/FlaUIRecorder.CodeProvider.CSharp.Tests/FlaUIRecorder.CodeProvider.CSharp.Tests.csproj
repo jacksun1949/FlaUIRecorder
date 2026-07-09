@@ -18,7 +18,4 @@
     <ProjectReference Include="..\..\FlaUIRecorder.CodeProvider.CSharp\FlaUIRecorder.CodeProvider.CSharp.csproj" />
     <ProjectReference Include="..\FlaUIRecorder.Tests.Common\FlaUIRecorder.Tests.Common.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
 </Project>

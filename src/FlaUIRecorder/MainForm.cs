@@ -26,19 +26,42 @@ namespace FlaUIRecorder
         private AssemblyInformationalVersionAttribute _assemblyInformationalVersionAttribute;
         private MRUManager _mruManager;
         private Process _targetProcesStartedByRecorder;
-
-        private ToolStripStatusLabel _statusLabel;
-        private ToolStripStatusLabel _errorStatusLabel;
+        private RecordingAutosave _autosave;
 
         public MainForm()
         {
             InitializeComponent();
 
-            // Segoe UI 9 on a fixed-layout form (AutoScaleMode.None) — avoids shrink on restore after minimize.
-            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BackColor = System.Drawing.Color.FromArgb(245, 245, 245);
+            ConfigureDpiAwareGroupBoxes();
+            WireMutuallyExclusiveTargetRadioButtons();
 
             _assemblyInformationalVersionAttribute = Assembly.GetEntryAssembly().GetCustomAttribute(typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
+        }
+
+        private void ConfigureDpiAwareGroupBoxes()
+        {
+            foreach (var groupBox in new[] { groupBox1, groupBox2, groupBox3 })
+                groupBox.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            argsRowTableLayout.ColumnStyles[0] = new ColumnStyle(SizeType.AutoSize);
+        }
+
+        // rdbApplicationStart ("Path:") and rdbApplicationProcess ("Process:") live in different
+        // TableLayoutPanel containers, so WinForms does not auto-group them. Wire mutual exclusion
+        // explicitly so only one target-application source can be active at a time.
+        private void WireMutuallyExclusiveTargetRadioButtons()
+        {
+            rdbApplicationStart.CheckedChanged += (s, e) =>
+            {
+                if (rdbApplicationStart.Checked && rdbApplicationProcess.Checked)
+                    rdbApplicationProcess.Checked = false;
+            };
+            rdbApplicationProcess.CheckedChanged += (s, e) =>
+            {
+                if (rdbApplicationProcess.Checked && rdbApplicationStart.Checked)
+                    rdbApplicationStart.Checked = false;
+            };
         }
 
         private AutomationType GetAutomationType()
@@ -48,12 +71,15 @@ namespace FlaUIRecorder
 
         internal void CancelRecording()
         {
+            _autosave?.Stop();
             CloseRecorderAndShowMainForm();
             _currentProject.Sessions.Remove(_currentProject.Sessions.Last());
+            RecordingAutosave.DeleteAutosave(_currentProject.FileName);
         }
 
         internal void Finished(string code)
         {
+            _autosave?.Stop();
             CloseRecorderAndShowMainForm();
             var recordSession = _currentProject.Sessions.Last();
             recordSession.Code = code;
@@ -62,6 +88,7 @@ namespace FlaUIRecorder
                 recordSession.Actions.AddRange(_recorderForm.Actions);
             }
             _currentProject.IsDirty = true;
+            RecordingAutosave.DeleteAutosave(_currentProject.FileName);
 
             recorderProjectBindingSource.EndEdit();
 
@@ -89,7 +116,10 @@ namespace FlaUIRecorder
 
         private void RefreshProcessList()
         {
-            cboApplicationProcess.DataSource = Process.GetProcesses().OrderBy(p => p.ProcessName).ToArray();
+            cboApplicationProcess.DataSource = Process.GetProcesses()
+                .OrderBy(p => p.ProcessName)
+                .ThenBy(p => p.Id)
+                .ToArray();
             cboApplicationProcess.ValueMember = "Id";
         }
 
@@ -149,6 +179,7 @@ namespace FlaUIRecorder
                 _currentProject.FileName = fileName;
                 _currentProject.IsDirty = false;
                 UpdateTitle();
+                CheckAutosaveRecovery(fileName);
             }
             catch (Exception ex)
             {
@@ -315,32 +346,35 @@ namespace FlaUIRecorder
             // Add Export menu item dynamically
             var mnuExport = new ToolStripMenuItem("Export Project...");
             mnuExport.Click += (s, ev) => ExportProject();
-            // Assume file menu is the first drop down
+
+            // Theme menu
+            var mnuTheme = new ToolStripMenuItem("Theme");
+            var mnuLight = new ToolStripMenuItem("Light");
+            mnuLight.Click += (s, ev) => ThemeManager.ApplyTheme(this, AppTheme.Light);
+            var mnuDark = new ToolStripMenuItem("Dark");
+            mnuDark.Click += (s, ev) => ThemeManager.ApplyTheme(this, AppTheme.Dark);
+            var mnuHighContrast = new ToolStripMenuItem("High Contrast");
+            mnuHighContrast.Click += (s, ev) => ThemeManager.ApplyTheme(this, AppTheme.HighContrast);
+            mnuTheme.DropDownItems.AddRange(new ToolStripItem[] { mnuLight, mnuDark, mnuHighContrast });
+
             if (menuStrip1.Items.Count > 0 && menuStrip1.Items[0] is ToolStripMenuItem fileMenu)
             {
                 fileMenu.DropDownItems.Add(mnuExport);
             }
+            if (menuStrip1.Items.Count > 0)
+                menuStrip1.Items.Add(mnuTheme);
             _currentProject.IsDirty = false;
             UpdateTitle();
             InitializeMru();
 
-            // Professional status bar
-            var statusStrip = new StatusStrip();
-            _statusLabel = new ToolStripStatusLabel("Ready") { Spring = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft };
-            _errorStatusLabel = new ToolStripStatusLabel("Errors: 0") { IsLink = true };
-            _errorStatusLabel.Click += ErrorStatusLabel_Click;
-            statusStrip.Items.Add(_statusLabel);
-            statusStrip.Items.Add(_errorStatusLabel);
-            statusStrip.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
-            this.Controls.Add(statusStrip);
-            statusStrip.Dock = DockStyle.Bottom;
+            statusStrip1.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
             RecorderErrorLog.ErrorRecorded += (s, args) => UpdateErrorStatus();
             UpdateErrorStatus();
         }
 
         private void UpdateErrorStatus()
         {
-            if (_errorStatusLabel == null)
+            if (statusLabelErrors == null)
                 return;
 
             if (InvokeRequired)
@@ -349,7 +383,7 @@ namespace FlaUIRecorder
                 return;
             }
 
-            _errorStatusLabel.Text = $"Errors: {RecorderErrorLog.Count}";
+            statusLabelErrors.Text = $"Errors: {RecorderErrorLog.Count}";
         }
 
         private void ErrorStatusLabel_Click(object sender, EventArgs e)
@@ -397,6 +431,10 @@ namespace FlaUIRecorder
                 _recorderForm.Record();
                 _recorderForm.ShowInLowerRightCorner();
                 this.WindowState = FormWindowState.Minimized;
+
+                _autosave?.Dispose();
+                _autosave = new RecordingAutosave();
+                _autosave.Start(_currentProject, () => _recorderForm.Actions);
             }
             catch (Exception ex)
             {
@@ -426,7 +464,11 @@ namespace FlaUIRecorder
         private void cboApplicationProcess_Format(object sender, ListControlConvertEventArgs e)
         {
             Process item = e.ListItem as Process;
-            e.Value = $"{item.ProcessName} ({item.Id})";
+            string title = string.Empty;
+            try { title = item.MainWindowTitle; } catch { }
+            if (string.IsNullOrEmpty(title))
+                title = "(no title)";
+            e.Value = $"{item.ProcessName} ({item.Id}) - {title}";
         }
 
         private void openProjectToolStripMenuItem_Click(object sender, EventArgs e)
@@ -535,13 +577,22 @@ namespace FlaUIRecorder
                 if (folderDialog.ShowDialog(this) != DialogResult.OK)
                     return;
 
+                int totalActions = _currentProject.Sessions?.Sum(s => s.Actions?.Count ?? 0) ?? 0;
+                ExportOptions options;
+                using (var optionsDialog = new ExportProjectDialog(totalActions))
+                {
+                    if (optionsDialog.ShowDialog(this) != DialogResult.OK)
+                        return;
+                    options = optionsDialog.Options;
+                }
+
                 string projectName = string.IsNullOrEmpty(_currentProject.FileName) ? "RecordedAutomation" : Path.GetFileNameWithoutExtension(_currentProject.FileName);
                 string exportDir = Path.Combine(folderDialog.SelectedPath, projectName);
 
                 try
                 {
                     _currentProject.CodeProvider = cboCodeProvider.SelectedItem?.ToString();
-                    ProjectExporter.Export(_currentProject, exportDir, projectName);
+                    ProjectExporter.Export(_currentProject, exportDir, projectName, options);
 
                     var result = MessageBox.Show(
                         $"Exported project to {exportDir}\r\n\r\nOpen folder in Explorer?",
@@ -550,11 +601,41 @@ namespace FlaUIRecorder
                         MessageBoxIcon.Information);
 
                     if (result == DialogResult.Yes)
-                        Process.Start("explorer.exe", exportDir);
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = exportDir,
+                            UseShellExecute = true
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(this, "Export failed.\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void CheckAutosaveRecovery(string fileName)
+        {
+            if (RecordingAutosave.TryLoadAutosave(fileName, out var autosaved))
+            {
+                var result = MessageBox.Show(this,
+                    "An autosave file was found from a previous recording session. Restore it?",
+                    "Recover Autosave",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    _currentProject = autosaved;
+                    _currentProject.FileName = fileName;
+                    LoadControlValuesFromProject();
+                    _currentProject.IsDirty = true;
+                    UpdateTitle();
+                }
+                else
+                {
+                    RecordingAutosave.DeleteAutosave(fileName);
                 }
             }
         }

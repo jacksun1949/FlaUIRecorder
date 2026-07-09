@@ -23,5 +23,15 @@ namespace FlaUIRecorder.CodeProvider.Common.Internals
         /// The according ui element
         /// </summary>
         public AutomationElement Element { get; set; }
+
+        /// <summary>
+        /// The parent variable used to find this element.
+        /// </summary>
+        public string ParentVariableName { get; set; }
+
+        /// <summary>
+        /// A stable key for the selector used to find this element.
+        /// </summary>
+        public string SelectorKey { get; set; }
     }
 }

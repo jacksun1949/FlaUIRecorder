@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using FlaUI.Core.AutomationElements.Infrastructure;
 using FlaUI.Core.Definitions;
@@ -79,21 +80,25 @@ namespace FlaUIRecorder.CodeProvider.Common
 
         public static string BuildCSharpCondition(SelectorInfo selector)
         {
-            var parts = new StringBuilder("e");
+            var parts = new List<string>();
 
             if (!string.IsNullOrEmpty(selector.AutomationId))
-                parts.Append($".ByAutomationId(\"{EscapeString(selector.AutomationId)}\")");
+                parts.Add($"e.ByAutomationId(\"{EscapeString(selector.AutomationId)}\")");
 
             if (selector.ControlType.HasValue)
-                parts.Append($".And(e.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value}))");
+                parts.Add($"e.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value})");
 
             if (!string.IsNullOrEmpty(selector.Name))
-                parts.Append($".And(e.ByName(\"{EscapeString(selector.Name)}\"))");
+                parts.Add($"e.ByName(\"{EscapeString(selector.Name)}\")");
 
-            if (selector.RequireEnabled)
-                parts.Append(".And(e => e.IsEnabled)");
+            if (parts.Count == 0)
+                return "e => true";
 
-            return parts.ToString();
+            var result = new StringBuilder(parts[0]);
+            for (var i = 1; i < parts.Count; i++)
+                result.Append($".And({parts[i]})");
+
+            return result.ToString();
         }
 
         public static string BuildPowerShellCondition(SelectorInfo selector)

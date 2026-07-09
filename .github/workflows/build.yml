@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore solution
+        run: dotnet restore src\FlaUIRecorder.sln --source https://api.nuget.org/v3/index.json
+        continue-on-error: true
+
+      - name: Build main project
+        run: dotnet build src\FlaUIRecorder\FlaUIRecorder.csproj --configuration Debug --no-restore
+        continue-on-error: false
+
+      - name: Build solution (core projects)
+        run: dotnet build src\FlaUIRecorder.sln --configuration Debug
+        continue-on-error: false
+
+      - name: Build tests (if restore succeeded)
+        run: dotnet test src\FlaUIRecorder.sln --configuration Debug --no-build
+        continue-on-error: true

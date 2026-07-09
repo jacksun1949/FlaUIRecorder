@@ -5,6 +5,7 @@ namespace FlaUIRecorder.Internal
 {
     public static class RecorderErrorLog
     {
+        private const int MaxEntries = 1000;
         private static readonly object SyncRoot = new object();
         private static readonly List<string> ErrorLog = new List<string>();
 
@@ -44,9 +45,20 @@ namespace FlaUIRecorder.Internal
             lock (SyncRoot)
             {
                 ErrorLog.Add(message);
+                while (ErrorLog.Count > MaxEntries)
+                    ErrorLog.RemoveAt(0);
             }
 
             ErrorRecorded?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void RemoveOldest()
+        {
+            lock (SyncRoot)
+            {
+                if (ErrorLog.Count > 0)
+                    ErrorLog.RemoveAt(0);
+            }
         }
 
         public static void Clear()

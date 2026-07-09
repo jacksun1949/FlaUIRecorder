@@ -14,6 +14,34 @@ Supporting multiple code generator/provider increases the usability of this appl
 * Add verifications (Adds e.g. `Assert.Equal(uielement.Text, "myvalue")` to the generated code). Required for automated ui tests.
 * Nicer project ui
 
+## Test project restore
+
+Test projects use NUnit 3.14 and FluentAssertions 6.12. If NuGet restore fails due to network or SSL issues, run from the repository root:
+
+```powershell
+.\restore-tests.ps1
+```
+
+A `NuGet.Config` at the solution root points to `https://api.nuget.org/v3/index.json`.
+
+## Export options
+
+When exporting a project (File → Export Project), you can choose:
+- **FlaUI 1.2.0 (net461)** — matches the recorder runtime (default)
+- **FlaUI 4.0 (net472)** — upgrade path for modern test projects
+
+The recorder itself stays on FlaUI 1.2.0; only exported projects can target newer versions.
+
+## Recording hotkeys
+
+During recording, global hotkeys are available:
+- `Ctrl+Shift+Alt+P` — pause/resume
+- `Ctrl+Shift+Alt+C` — add comment
+- `Ctrl+Shift+Alt+W` — insert wait
+- `Ctrl+Shift+Alt+A` — add assertion
+- `Ctrl+Shift+Alt+E` — pick element from tree
+- `Ctrl+Shift+Alt+Esc` — cancel recording
+
 ## Credits
 This application based on the [FlaUI](https://github.com/Roemer/FlaUI) and some ideas of [FlaUI Inspect](https://github.com/FlauTech/FlaUInspect).
 

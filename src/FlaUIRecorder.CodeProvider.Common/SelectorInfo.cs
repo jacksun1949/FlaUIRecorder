@@ -31,5 +31,10 @@ namespace FlaUIRecorder.CodeProvider.Common
                 return "element";
             }
         }
+
+        public string GetCacheKey()
+        {
+            return $"{AutomationId ?? string.Empty}|{Name ?? string.Empty}|{ControlType}|{FindMethod}|{ChildIndex}|{RequireEnabled}";
+        }
     }
 }

@@ -6,6 +6,7 @@
     <AssemblyName>FlaUIRecorder</AssemblyName>
     <RootNamespace>FlaUIRecorder</RootNamespace>
     <ApplicationIcon>UIExplorer.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

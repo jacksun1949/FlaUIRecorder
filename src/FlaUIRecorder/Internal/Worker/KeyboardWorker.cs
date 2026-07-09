@@ -13,7 +13,17 @@ namespace FlaUIRecorder.Internal.Worker
     {
         private static readonly HashSet<string> SpecialKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "RETURN", "ENTER", "ESCAPE", "TAB"
+            "RETURN", "ENTER", "ESCAPE", "TAB", "BACK", "BACKSPACE", "DELETE", "SPACE",
+            "HOME", "END", "PRIOR", "PAGEUP", "NEXT", "PAGEDOWN",
+            "LEFT", "RIGHT", "UP", "DOWN",
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+        };
+
+        private static readonly HashSet<string> ModifierKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "LCONTROL", "RCONTROL", "CONTROL", "LCTRL", "RCTRL", "CTRL",
+            "LSHIFT", "RSHIFT", "SHIFT",
+            "LALT", "RALT", "ALT", "LMENU", "RMENU"
         };
 
         private static readonly ControlType[] TextInputControlTypes =
@@ -26,6 +36,8 @@ namespace FlaUIRecorder.Internal.Worker
         private readonly HoverElementCache _hoverCache;
         private readonly int _targetProcessId;
         private readonly StringBuilder _textBuffer = new StringBuilder();
+        private readonly HashSet<string> _activeModifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HookHealthMonitor _healthMonitor;
         private AutomationElement _textTarget;
 
         public event EventHandler<KeyboardActionEventArgs> TextInputCompleted;
@@ -37,12 +49,15 @@ namespace FlaUIRecorder.Internal.Worker
             _automation = automation;
             _hoverCache = hoverCache ?? throw new ArgumentNullException(nameof(hoverCache));
             _targetProcessId = targetProcessId;
+            _healthMonitor = new HookHealthMonitor("Keyboard");
+            _healthMonitor.StatusChanged += (s, msg) => StatusChanged?.Invoke(this, msg);
             KeyboardWatcher.OnKeyInput += KeyboardWatcher_OnKeyInput;
         }
 
         public void Dispose()
         {
             Pause();
+            _healthMonitor.Dispose();
             KeyboardWatcher.OnKeyInput -= KeyboardWatcher_OnKeyInput;
         }
 
@@ -51,6 +66,7 @@ namespace FlaUIRecorder.Internal.Worker
             try
             {
                 KeyboardWatcher.Start();
+                _healthMonitor.Start();
                 StatusChanged?.Invoke(this, "Keyboard hook started");
             }
             catch (Exception ex)
@@ -62,7 +78,8 @@ namespace FlaUIRecorder.Internal.Worker
 
         public void Pause()
         {
-            FlushTextBuffer();
+            FlushTextBufferFromElement();
+            _activeModifiers.Clear();
             try
             {
                 KeyboardWatcher.Stop();
@@ -71,39 +88,63 @@ namespace FlaUIRecorder.Internal.Worker
             {
                 RecorderErrorLog.RecordError(ex, "KeyboardWatcher.Stop");
             }
+            _healthMonitor.Stop();
         }
 
         private void KeyboardWatcher_OnKeyInput(object sender, KeyInputEventArgs e)
         {
             try
             {
-                if (e?.KeyData == null || e.KeyData.EventType != KeyEvent.down)
+                _healthMonitor.RecordEvent();
+
+                if (e?.KeyData == null)
                     return;
 
                 var keyName = e.KeyData.Keyname?.ToUpperInvariant() ?? string.Empty;
                 if (string.IsNullOrEmpty(keyName))
                     return;
 
-                if (SpecialKeys.Contains(keyName))
+                if (e.KeyData.EventType == KeyEvent.down)
                 {
-                    FlushTextBuffer();
-                    KeyPressed?.Invoke(this, new KeyboardActionEventArgs { KeyName = MapVirtualKey(keyName) });
-                    return;
-                }
-
-                if (keyName.Length == 1)
-                {
-                    var focused = GetFocusedElement();
-                    if (!IsTextInputElement(focused))
-                        return;
-
-                    if (_textTarget == null || !ReferenceEquals(_textTarget, focused))
+                    if (IsModifierKey(keyName))
                     {
-                        FlushTextBuffer();
-                        _textTarget = focused;
+                        _activeModifiers.Add(NormalizeModifier(keyName));
+                        return;
                     }
 
-                    _textBuffer.Append(keyName);
+                    if (SpecialKeys.Contains(keyName))
+                    {
+                        FlushTextBufferFromElement();
+                        EmitKeyPress(MapVirtualKey(keyName));
+                        return;
+                    }
+
+                    if (_activeModifiers.Count > 0)
+                    {
+                        FlushTextBufferFromElement();
+                        EmitKeyPress(BuildCompoundKey(keyName));
+                        return;
+                    }
+
+                    if (keyName.Length == 1)
+                    {
+                        var focused = GetFocusedElement();
+                        if (!IsTextInputElement(focused))
+                            return;
+
+                        if (_textTarget == null || !ReferenceEquals(_textTarget, focused))
+                        {
+                            FlushTextBufferFromElement();
+                            _textTarget = focused;
+                        }
+
+                        _textBuffer.Append(keyName);
+                    }
+                }
+                else if (e.KeyData.EventType == KeyEvent.up)
+                {
+                    if (IsModifierKey(keyName))
+                        _activeModifiers.Remove(NormalizeModifier(keyName));
                 }
             }
             catch (Exception ex)
@@ -112,23 +153,88 @@ namespace FlaUIRecorder.Internal.Worker
             }
         }
 
-        private void FlushTextBuffer()
+        private void EmitKeyPress(string keyName)
         {
-            if (_textTarget == null || _textBuffer.Length == 0)
-            {
-                _textBuffer.Clear();
-                _textTarget = null;
-                return;
-            }
+            KeyPressed?.Invoke(this, new KeyboardActionEventArgs { KeyName = keyName });
+        }
 
-            TextInputCompleted?.Invoke(this, new KeyboardActionEventArgs
+        private string BuildCompoundKey(string keyName)
+        {
+            var parts = new List<string>();
+            if (_activeModifiers.Contains("Ctrl")) parts.Add("Ctrl");
+            if (_activeModifiers.Contains("Shift")) parts.Add("Shift");
+            if (_activeModifiers.Contains("Alt")) parts.Add("Alt");
+            parts.Add(keyName.Length == 1 ? keyName.ToUpperInvariant() : MapVirtualKey(keyName));
+            return string.Join("+", parts);
+        }
+
+        private static bool IsModifierKey(string keyName)
+        {
+            return ModifierKeys.Contains(keyName);
+        }
+
+        private static string NormalizeModifier(string keyName)
+        {
+            if (keyName.Contains("SHIFT")) return "Shift";
+            if (keyName.Contains("ALT") || keyName.Contains("MENU")) return "Alt";
+            return "Ctrl";
+        }
+
+        private void FlushTextBufferFromElement()
+        {
+            if (_textTarget != null)
             {
-                Element = _textTarget,
-                Text = _textBuffer.ToString()
-            });
+                var fullText = TryReadElementText(_textTarget);
+                if (!string.IsNullOrEmpty(fullText))
+                {
+                    TextInputCompleted?.Invoke(this, new KeyboardActionEventArgs
+                    {
+                        Element = _textTarget,
+                        Text = fullText
+                    });
+                }
+                else if (_textBuffer.Length > 0)
+                {
+                    TextInputCompleted?.Invoke(this, new KeyboardActionEventArgs
+                    {
+                        Element = _textTarget,
+                        Text = _textBuffer.ToString()
+                    });
+                }
+            }
 
             _textBuffer.Clear();
             _textTarget = null;
+        }
+
+        private static string TryReadElementText(AutomationElement element)
+        {
+            if (element == null)
+                return null;
+
+            try
+            {
+                if (element.Patterns.Value.IsSupported)
+                {
+                    var value = element.Patterns.Value.Pattern.Value;
+                    if (!string.IsNullOrEmpty(value))
+                        return value;
+                }
+
+                if (element.Patterns.Text.IsSupported)
+                {
+                    var text = element.Patterns.Text.Pattern.DocumentRange.GetText(-1);
+                    if (!string.IsNullOrEmpty(text))
+                        return text;
+                }
+
+                var textBox = element.AsTextBox();
+                if (textBox != null && !string.IsNullOrEmpty(textBox.Text))
+                    return textBox.Text;
+            }
+            catch { }
+
+            return null;
         }
 
         private AutomationElement GetFocusedElement()
@@ -182,10 +288,38 @@ namespace FlaUIRecorder.Internal.Worker
 
         private static string MapVirtualKey(string keyName)
         {
-            if (keyName == "RETURN")
-                return "ENTER";
-
-            return keyName;
+            switch (keyName)
+            {
+                case "RETURN":
+                    return "Enter";
+                case "BACK":
+                case "BACKSPACE":
+                    return "Back";
+                case "PRIOR":
+                case "PAGEUP":
+                    return "PageUp";
+                case "NEXT":
+                case "PAGEDOWN":
+                    return "PageDown";
+                case "ESCAPE":
+                    return "Escape";
+                case "DELETE":
+                    return "Delete";
+                case "SPACE":
+                    return "Space";
+                case "LEFT":
+                case "RIGHT":
+                case "UP":
+                case "DOWN":
+                case "HOME":
+                case "END":
+                case "TAB":
+                    return char.ToUpper(keyName[0]) + keyName.Substring(1).ToLowerInvariant();
+                default:
+                    if (keyName.StartsWith("F") && keyName.Length <= 3)
+                        return keyName;
+                    return keyName;
+            }
         }
     }
 

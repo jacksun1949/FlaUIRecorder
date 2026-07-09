@@ -64,9 +64,9 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
             var variable = BuildPathToParent(element);
 
-            AppendLine($"if ({variable.Name} == null) throw new InvalidOperationException(\"Could not find element '{GetElementLabel(element)}'\");");
+            AppendSafeClickHelperIfNeeded();
 
-            AppendLine($"{variable.Name}.Click();");
+            AppendLine(SafeClickCodeGenerator.BuildCSharpClick(variable.Name));
 
             AppendMenuWaitIfNeeded(element);
 
@@ -80,11 +80,69 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
             var variable = BuildPathToParent(element);
 
-            AppendLine($"if ({variable.Name} == null) throw new InvalidOperationException(\"Could not find element '{GetElementLabel(element)}'\");");
+            AppendSafeClickHelperIfNeeded();
 
-            AppendLine($"{variable.Name}.RightClick();");
+            AppendLine(SafeClickCodeGenerator.BuildCSharpRightClick(variable.Name));
 
             AppendMenuWaitIfNeeded(element);
+
+        }
+
+
+
+        public override void DoubleClick(AutomationElement element)
+
+        {
+
+            var variable = BuildPathToParent(element);
+
+            AppendSafeClickHelperIfNeeded();
+
+            AppendLine(SafeClickCodeGenerator.BuildCSharpDoubleClick(variable.Name));
+
+        }
+
+
+
+        public override void Drag(AutomationElement fromElement, AutomationElement toElement)
+
+        {
+
+            var fromVar = BuildPathToParent(fromElement);
+
+            var toVar = BuildPathToParent(toElement);
+
+            AppendSafeClickHelperIfNeeded();
+
+            AppendLine(SafeClickCodeGenerator.BuildCSharpDrag(fromVar.Name, toVar.Name));
+
+        }
+
+
+
+        public override void Scroll(AutomationElement element, int delta)
+
+        {
+
+            BuildPathToParent(element);
+
+            var clicks = Math.Max(1, Math.Abs(delta) / 120);
+
+            var direction = delta > 0 ? "true" : "false";
+
+            AppendLine($"FlaUI.Core.Input.Mouse.Scroll({clicks}, {direction});");
+
+        }
+
+
+
+        public override void HoverStay(AutomationElement element, int durationMs)
+
+        {
+
+            var variable = BuildPathToParent(element);
+
+            AppendLine($"System.Threading.Thread.Sleep({durationMs}); // Hover-stay on {variable.Name}");
 
         }
 
@@ -95,8 +153,6 @@ namespace FlaUIRecorder.CodeProvider.CSharp
         {
 
             var variable = BuildPathToParent(element);
-
-            AppendLine($"if ({variable.Name} == null) throw new InvalidOperationException(\"Could not find element '{GetElementLabel(element)}'\");");
 
             AppendLine($"{variable.Name}.Enter(\"{SelectorBuilder.EscapeString(text)}\");");
 
@@ -109,8 +165,6 @@ namespace FlaUIRecorder.CodeProvider.CSharp
         {
 
             var variable = BuildPathToParent(element);
-
-            AppendLine($"if ({variable.Name} == null) throw new InvalidOperationException(\"Could not find element '{GetElementLabel(element)}'\");");
 
             AppendLine($"NUnit.Framework.Assert.AreEqual(\"{SelectorBuilder.EscapeString(expected)}\", {variable.Name}.AsTextBox()?.Text ?? {variable.Name}.Patterns.Value.Pattern.Value);");
 
@@ -138,7 +192,7 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
         {
 
-            AppendLine($"FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.{keyName});");
+            AppendLine(KeyPressCodeGenerator.BuildCSharpKeyPress(keyName));
 
         }
 
@@ -258,43 +312,35 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
         {
 
-            var parent = GetParentOrMainWindow(element);
+            var baseName = CSharpCodeHelper.GetVariableName(element);
 
-            var elementName = CSharpCodeHelper.GetVariableName(element, parent);
+            return EnsureUniqueVariableName(baseName);
 
-            string suffix;
+        }
 
 
 
-            if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
+        private string EnsureUniqueVariableName(string baseName)
 
-            {
+        {
 
-                suffix = SanitizeIdentifier(automationId);
+            if (!_existingVariables.Any(v => string.Equals(v.Name, baseName, StringComparison.OrdinalIgnoreCase)))
 
-                if (string.IsNullOrEmpty(suffix))
+                return baseName;
 
-                    suffix = GetVariableIdentifier(elementName);
 
-            }
 
-            else
+            for (var index = 2; ; index++)
 
             {
 
-                suffix = "_" + GetVariableIdentifier(elementName);
+                var candidate = baseName + "_" + index;
+
+                if (!_existingVariables.Any(v => string.Equals(v.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+
+                    return candidate;
 
             }
-
-
-
-            if (_existingVariables.Any(v => string.Equals(v.Name, elementName + suffix, StringComparison.OrdinalIgnoreCase)))
-
-                suffix = "_" + GetVariableIdentifier(elementName);
-
-
-
-            return elementName + suffix;
 
         }
 
@@ -318,40 +364,6 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
 
 
-        private string GetVariableIdentifier(string variableName)
-
-        {
-
-            var amount = _existingVariables.Count(v => v.Name.StartsWith(variableName) && v.Name.Length > variableName.Length && Char.IsDigit(v.Name[variableName.Length]));
-
-            return (amount + 1).ToString();
-
-        }
-
-
-
-        private static string GetElementLabel(AutomationElement element)
-
-        {
-
-            if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
-
-                return automationId;
-
-            if (element.Properties.Name.TryGetValue(out var name) && !string.IsNullOrEmpty(name))
-
-                return name;
-
-            if (element.Properties.ControlType.TryGetValue(out var controlType))
-
-                return controlType.ToString();
-
-            return "element";
-
-        }
-
-
-
         public override void RecordAction(string automationId, string name, string controlType, string actionType, string comment)
 
         {
@@ -361,5 +373,3 @@ namespace FlaUIRecorder.CodeProvider.CSharp
     }
 
 }
-
-
