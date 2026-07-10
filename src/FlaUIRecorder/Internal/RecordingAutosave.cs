@@ -1,7 +1,7 @@
 using System;
 using System.IO;
+using System.Text.Json;
 using System.Timers;
-using System.Web.Script.Serialization;
 
 namespace FlaUIRecorder.Internal
 {
@@ -10,15 +10,15 @@ namespace FlaUIRecorder.Internal
         private const int AutosaveIntervalMs = 30000;
         private const string AutosaveExtension = ".urp.autosave";
 
-        private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
         {
-            MaxJsonLength = int.MaxValue,
-            RecursionLimit = 128
+            WriteIndented = true
         };
 
         private readonly Timer _timer;
         private RecorderProject _project;
         private Func<System.Collections.Generic.List<RecordedAction>> _getActions;
+        private readonly object _lock = new object();
 
         public RecordingAutosave()
         {
@@ -28,8 +28,11 @@ namespace FlaUIRecorder.Internal
 
         public void Start(RecorderProject project, Func<System.Collections.Generic.List<RecordedAction>> getActions)
         {
-            _project = project;
-            _getActions = getActions;
+            lock (_lock)
+            {
+                _project = project;
+                _getActions = getActions;
+            }
             _timer.Start();
         }
 
@@ -42,12 +45,18 @@ namespace FlaUIRecorder.Internal
         {
             try
             {
-                if (_project == null || string.IsNullOrEmpty(_project.FileName))
-                    return;
+                RecorderProject projectSnapshot;
+                lock (_lock)
+                {
+                    if (_project == null || string.IsNullOrEmpty(_project.FileName))
+                        return;
 
-                var autosavePath = _project.FileName + AutosaveExtension;
-                var snapshot = Serializer.Serialize(_project);
-                File.WriteAllText(autosavePath, snapshot);
+                    projectSnapshot = _project;
+                }
+
+                var autosavePath = projectSnapshot.FileName + AutosaveExtension;
+                var json = JsonSerializer.Serialize(projectSnapshot, Options);
+                File.WriteAllText(autosavePath, json);
             }
             catch (Exception ex)
             {
@@ -70,11 +79,12 @@ namespace FlaUIRecorder.Internal
             try
             {
                 var json = File.ReadAllText(path);
-                project = Serializer.Deserialize<RecorderProject>(json);
+                project = JsonSerializer.Deserialize<RecorderProject>(json, Options);
                 return project != null;
             }
-            catch
+            catch (Exception ex)
             {
+                RecorderErrorLog.RecordError(ex, "RecordingAutosave.TryLoadAutosave");
                 return false;
             }
         }
@@ -84,7 +94,8 @@ namespace FlaUIRecorder.Internal
             var path = GetAutosavePath(projectFileName);
             if (path != null && File.Exists(path))
             {
-                try { File.Delete(path); } catch { }
+                try { File.Delete(path); }
+                catch (Exception ex) { RecorderErrorLog.RecordError(ex, "RecordingAutosave.DeleteAutosave"); }
             }
         }
 

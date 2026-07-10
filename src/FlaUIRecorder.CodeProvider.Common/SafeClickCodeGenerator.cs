@@ -4,10 +4,10 @@ namespace FlaUIRecorder.CodeProvider.Common
     {
         public const string HelperMarker = "void SafeClick(";
 
-        private const string ElementType = "FlaUI.Core.AutomationElements.Infrastructure.AutomationElement";
+        private const string ElementType = "FlaUI.Core.AutomationElements.AutomationElement";
 
         private const string GetElementClickPointSignature =
-            "FlaUI.Core.Shapes.Point GetElementClickPoint(" + ElementType + " element) ";
+            "System.Drawing.Point GetElementClickPoint(" + ElementType + " element) ";
 
         private const string GetElementClickPointBody =
             "{\n" +
@@ -15,22 +15,33 @@ namespace FlaUIRecorder.CodeProvider.Common
             "    {\n" +
             "        return element.GetClickablePoint();\n" +
             "    }\n" +
-            "    catch (FlaUI.Core.Exceptions.NoClickablePointException)\n" +
+            "    catch\n" +
             "    {\n" +
-            "        var r = element.Properties.BoundingRectangle.Value;\n" +
-            "        if (r.IsEmpty || r.Width <= 0 || r.Height <= 0)\n" +
-            "            throw;\n" +
-            "        return r.Center;\n" +
+            "        try\n" +
+            "        {\n" +
+            "            var r = element.Properties.BoundingRectangle.Value;\n" +
+            "            if (!r.IsEmpty && r.Width > 0 && r.Height > 0)\n" +
+            "                return new System.Drawing.Point(r.Left + r.Width / 2, r.Top + r.Height / 2);\n" +
+            "        }\n" +
+            "        catch { }\n" +
+            "        throw;\n" +
             "    }\n" +
             "}";
 
         private const string SafeClickBody =
             "{\n" +
-            "    var point = GetElementClickPoint(element);\n" +
-            "    if (doubleClick)\n" +
-            "        FlaUI.Core.Input.Mouse.DoubleClick(button, point);\n" +
-            "    else\n" +
-            "        FlaUI.Core.Input.Mouse.Click(button, point);\n" +
+            "    try\n" +
+            "    {\n" +
+            "        var point = GetElementClickPoint(element);\n" +
+            "        if (doubleClick)\n" +
+            "            FlaUI.Core.Input.Mouse.DoubleClick(point, button);\n" +
+            "        else\n" +
+            "            FlaUI.Core.Input.Mouse.Click(point, button);\n" +
+            "    }\n" +
+            "    catch (System.Runtime.InteropServices.COMException)\n" +
+            "    {\n" +
+            "        Console.WriteLine(\"  [WARN] COM error clicking element, skipping\");\n" +
+            "    }\n" +
             "}";
 
         private const string SafeClickSignature =
@@ -38,12 +49,19 @@ namespace FlaUIRecorder.CodeProvider.Common
 
         private const string SafeDragBody =
             "{\n" +
-            "    var start = GetElementClickPoint(fromElement);\n" +
-            "    FlaUI.Core.Input.Mouse.MoveTo(start);\n" +
-            "    FlaUI.Core.Input.Mouse.Down(FlaUI.Core.Input.MouseButton.Left);\n" +
-            "    var end = GetElementClickPoint(toElement);\n" +
-            "    FlaUI.Core.Input.Mouse.MoveTo(end);\n" +
-            "    FlaUI.Core.Input.Mouse.Up(FlaUI.Core.Input.MouseButton.Left);\n" +
+            "    try\n" +
+            "    {\n" +
+            "        var start = GetElementClickPoint(fromElement);\n" +
+            "        FlaUI.Core.Input.Mouse.MoveTo(start);\n" +
+            "        FlaUI.Core.Input.Mouse.Down(FlaUI.Core.Input.MouseButton.Left);\n" +
+            "        var end = GetElementClickPoint(toElement);\n" +
+            "        FlaUI.Core.Input.Mouse.MoveTo(end);\n" +
+            "        FlaUI.Core.Input.Mouse.Up(FlaUI.Core.Input.MouseButton.Left);\n" +
+            "    }\n" +
+            "    catch (System.Runtime.InteropServices.COMException)\n" +
+            "    {\n" +
+            "        Console.WriteLine(\"  [WARN] COM error during drag, skipping\");\n" +
+            "    }\n" +
             "}";
 
         private const string SafeDragSignature =
@@ -57,7 +75,7 @@ namespace FlaUIRecorder.CodeProvider.Common
 
         /// <summary>Static helpers for exported RecordedAutomation class (also callable from page objects).</summary>
         public static string CSharpStaticHelperMethod =>
-            "public static FlaUI.Core.Shapes.Point GetElementClickPoint(" + ElementType + " element)\n" +
+            "public static System.Drawing.Point GetElementClickPoint(" + ElementType + " element)\n" +
             GetElementClickPointBody + "\n\n" +
             "public static void SafeClick(" + ElementType + " element, FlaUI.Core.Input.MouseButton button = FlaUI.Core.Input.MouseButton.Left, bool doubleClick = false)\n" +
             SafeClickBody + "\n\n" +

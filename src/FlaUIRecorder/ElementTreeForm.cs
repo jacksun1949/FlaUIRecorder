@@ -4,10 +4,10 @@ using System.Drawing;
 using System.Windows.Forms;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
-using FlaUI.Core.Shapes;
+using System.Drawing;
 
 namespace FlaUIRecorder
 {
@@ -141,12 +141,17 @@ namespace FlaUIRecorder
             string controlType = "Unknown";
             string automationId = string.Empty;
 
-            if (element.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
-                name = n;
-            if (element.Properties.ControlType.TryGetValue(out var ct))
-                controlType = ct.ToString();
-            if (element.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
-                automationId = " [" + aid + "]";
+            try
+            {
+                if (element.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
+                    name = n;
+                if (element.Properties.ControlType.TryGetValue(out var ct))
+                    controlType = ct.ToString();
+                if (element.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
+                    automationId = " [" + aid + "]";
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return new TreeNode($"{controlType}: {name}{automationId}");
         }

@@ -1,7 +1,7 @@
 ﻿
 using System;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.EventHandlers;
 using UIA = System.Windows.Automation;

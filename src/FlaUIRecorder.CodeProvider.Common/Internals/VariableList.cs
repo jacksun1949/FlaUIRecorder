@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUIRecorder.CodeProvider.Common;
 
 namespace FlaUIRecorder.CodeProvider.Common.Internals
@@ -62,15 +62,27 @@ namespace FlaUIRecorder.CodeProvider.Common.Internals
             if (element == null)
                 return null;
 
-            if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
+            try
             {
-                var result = this.FirstOrDefault(v =>
-                    v.Element.Properties.AutomationId.TryGetValue(out var id)
-                    && string.Equals(id, automationId, StringComparison.Ordinal));
+                if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
+                {
+                    var result = this.FirstOrDefault(v =>
+                    {
+                        try
+                        {
+                            return v.Element.Properties.AutomationId.TryGetValue(out var id)
+                                && string.Equals(id, automationId, StringComparison.Ordinal);
+                        }
+                        catch (System.Runtime.InteropServices.COMException) { return false; }
+                        catch (InvalidOperationException) { return false; }
+                    });
 
-                if (result != null)
-                    return result;
+                    if (result != null)
+                        return result;
+                }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return this.FirstOrDefault(v => ReferenceEquals(v.Element, element));
         }

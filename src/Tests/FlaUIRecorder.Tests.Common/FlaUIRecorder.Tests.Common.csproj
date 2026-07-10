@@ -1,17 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <AssemblyName>FlaUIRecorder.Tests.Common</AssemblyName>
     <RootNamespace>FlaUIRecorder.Tests.Common</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FlaUI.Core" Version="1.2.0" />
-    <PackageReference Include="FlaUI.UIA2" Version="1.2.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="UIAutomationClient" />
-    <Reference Include="UIAutomationTypes" />
-    <Reference Include="WindowsBase" />
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+    <PackageReference Include="FlaUI.UIA2" Version="5.0.0" />
   </ItemGroup>
 </Project>

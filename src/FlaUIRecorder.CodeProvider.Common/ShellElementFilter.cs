@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 
 namespace FlaUIRecorder.CodeProvider.Common
@@ -52,15 +52,20 @@ namespace FlaUIRecorder.CodeProvider.Common
                 return true;
             }
 
-            if (element.Properties.ClassName.TryGetValue(out var className)
-                && !string.IsNullOrEmpty(className))
+            try
             {
-                foreach (var shellClass in ShellClassNames)
+                if (element.Properties.ClassName.TryGetValue(out var className)
+                    && !string.IsNullOrEmpty(className))
                 {
-                    if (string.Equals(className, shellClass, StringComparison.OrdinalIgnoreCase))
-                        return true;
+                    foreach (var shellClass in ShellClassNames)
+                    {
+                        if (string.Equals(className, shellClass, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
                 }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return IsDesktopPane(element);
         }
@@ -70,16 +75,23 @@ namespace FlaUIRecorder.CodeProvider.Common
             if (element == null)
                 return false;
 
-            if (!element.Properties.ControlType.TryGetValue(out var controlType))
-                return false;
+            try
+            {
+                if (!element.Properties.ControlType.TryGetValue(out var controlType))
+                    return false;
 
-            if (controlType != ControlType.Pane)
-                return false;
+                if (controlType != ControlType.Pane)
+                    return false;
 
-            if (!element.Properties.Name.TryGetValue(out var name) || string.IsNullOrEmpty(name))
-                return false;
+                if (!element.Properties.Name.TryGetValue(out var name) || string.IsNullOrEmpty(name))
+                    return false;
 
-            return DesktopPaneNamePattern.IsMatch(name.Trim());
+                return DesktopPaneNamePattern.IsMatch(name.Trim());
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
+
+            return false;
         }
     }
 }

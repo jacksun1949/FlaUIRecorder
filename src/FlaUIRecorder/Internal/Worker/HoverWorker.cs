@@ -1,10 +1,10 @@
 ﻿using FlaUI.Core;
 
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 
 using FlaUI.Core.Input;
 
-using FlaUI.Core.Shapes;
+using System.Drawing;
 
 using System;
 
@@ -91,6 +91,7 @@ namespace FlaUIRecorder.Internal.Worker
         {
 
             Pause();
+            _dispatcherTimer.Dispose();
 
         }
 
@@ -394,7 +395,7 @@ namespace FlaUIRecorder.Internal.Worker
 
                 {
 
-                    automationElement.DrawHighlight(false, System.Drawing.Color.Red, HighlightDurationMs);
+                    automationElement.DrawHighlight(false, System.Drawing.Color.Red, TimeSpan.FromMilliseconds(HighlightDurationMs));
 
                 }
 

@@ -5,10 +5,11 @@ namespace FlaUIRecorder
 {
     public class ExportProjectDialog : Form
     {
-        private readonly RadioButton _rdbFlaUI12;
+        private readonly RadioButton _rdbFlaUI50;
         private readonly RadioButton _rdbFlaUI40;
         private readonly CheckBox _chkPageObjects;
         private readonly CheckBox _chkScreenshotOnFailure;
+        private readonly CheckBox _chkContinueOnError;
         private readonly Button _btnOk;
         private readonly Button _btnCancel;
 
@@ -25,19 +26,19 @@ namespace FlaUIRecorder
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(420, 220);
+            ClientSize = new System.Drawing.Size(420, 250);
 
             var lblFlaUI = new Label { Text = "Target FlaUI version (exported project only):", Location = new System.Drawing.Point(12, 12), AutoSize = true };
-            _rdbFlaUI12 = new RadioButton
+            _rdbFlaUI50 = new RadioButton
             {
-                Text = "FlaUI 1.2.0 (net461, compatible with recorder)",
+                Text = "FlaUI 5.0.0 (net8.0-windows, recommended)",
                 Location = new System.Drawing.Point(28, 34),
                 AutoSize = true,
                 Checked = true
             };
             _rdbFlaUI40 = new RadioButton
             {
-                Text = "FlaUI 4.0 (net472, modern API — see export comments)",
+                Text = "FlaUI 4.0 (net472, legacy)",
                 Location = new System.Drawing.Point(28, 56),
                 AutoSize = true
             };
@@ -56,11 +57,18 @@ namespace FlaUIRecorder
                 AutoSize = true,
                 Checked = true
             };
+            _chkContinueOnError = new CheckBox
+            {
+                Text = "Continue on error (log failures, don't stop)",
+                Location = new System.Drawing.Point(12, 136),
+                AutoSize = true,
+                Checked = true
+            };
 
-            _btnOk = new Button { Text = "Export", DialogResult = DialogResult.OK, Location = new System.Drawing.Point(240, 175), Width = 75 };
-            _btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new System.Drawing.Point(325, 175), Width = 75 };
+            _btnOk = new Button { Text = "Export", DialogResult = DialogResult.OK, Location = new System.Drawing.Point(240, 195), Width = 75 };
+            _btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new System.Drawing.Point(325, 195), Width = 75 };
 
-            Controls.AddRange(new Control[] { lblFlaUI, _rdbFlaUI12, _rdbFlaUI40, _chkPageObjects, _chkScreenshotOnFailure, _btnOk, _btnCancel });
+            Controls.AddRange(new Control[] { lblFlaUI, _rdbFlaUI50, _rdbFlaUI40, _chkPageObjects, _chkScreenshotOnFailure, _chkContinueOnError, _btnOk, _btnCancel });
             AcceptButton = _btnOk;
             CancelButton = _btnCancel;
         }
@@ -71,10 +79,11 @@ namespace FlaUIRecorder
             {
                 Options = new ExportOptions
                 {
-                    FlaUIVersion = _rdbFlaUI40.Checked ? ExportOptions.FlaUIVersion40 : ExportOptions.FlaUIVersion12,
-                    TargetFramework = _rdbFlaUI40.Checked ? "net472" : "net461",
+                    FlaUIVersion = _rdbFlaUI50.Checked ? ExportOptions.FlaUIVersion50 : ExportOptions.FlaUIVersion40,
+                    TargetFramework = _rdbFlaUI50.Checked ? "net8.0-windows" : "net472",
                     GeneratePageObjects = _chkPageObjects.Checked,
-                    CaptureScreenshotOnFailure = _chkScreenshotOnFailure.Checked
+                    CaptureScreenshotOnFailure = _chkScreenshotOnFailure.Checked,
+                    ContinueOnError = _chkContinueOnError.Checked
                 };
             }
             base.OnFormClosing(e);
@@ -86,7 +95,6 @@ namespace FlaUIRecorder
             // 
             // ExportProjectDialog
             // 
-            this.ClientSize = new System.Drawing.Size(630, 278);
             this.Name = "ExportProjectDialog";
             this.ResumeLayout(false);
 

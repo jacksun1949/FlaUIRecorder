@@ -2,27 +2,28 @@ namespace FlaUIRecorder
 {
     /// <summary>
     /// Options for exporting a standalone test project.
-    /// The recorder itself stays on FlaUI 1.2.0 / net461; only exported projects can target newer FlaUI.
+    /// The recorder runs on FlaUI 5.0.0 / net8.0-windows.
     /// </summary>
     public class ExportOptions
     {
         /// <summary>
-        /// FlaUI 1.2.0 on net461 — matches the recorder runtime and avoids API surprises.
+        /// FlaUI 5.0.0 on net8.0-windows — matches the recorder runtime.
         /// </summary>
-        public const string FlaUIVersion12 = "1.2.0";
+        public const string FlaUIVersion50 = "5.0.0";
 
         /// <summary>
-        /// FlaUI 4.x on net472 — upgrade path for modern exported test projects.
-        /// See ProjectExporter for migration notes (API changes between 1.x and 4.x).
+        /// FlaUI 4.0 on net472 — legacy option for older targets.
         /// </summary>
         public const string FlaUIVersion40 = "4.0.0";
 
-        public string FlaUIVersion { get; set; } = FlaUIVersion12;
-        public string TargetFramework { get; set; } = "net461";
+        public string FlaUIVersion { get; set; } = FlaUIVersion50;
+        public string TargetFramework { get; set; } = "net8.0-windows";
         public bool GeneratePageObjects { get; set; } = true;
         public bool CaptureScreenshotOnFailure { get; set; } = true;
         public int PageObjectActionThreshold { get; set; } = 10;
+        public bool ContinueOnError { get; set; } = true;
 
+        public bool IsFlaUI50 => FlaUIVersion.StartsWith("5");
         public bool IsFlaUI40 => FlaUIVersion.StartsWith("4");
     }
 }

@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Web.Script.Serialization;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUIRecorder.CodeProvider.Common;
 using FlaUIRecorder.Internal.Worker;
+using System.Text.Json;
 
 namespace FlaUIRecorder.Internal
 {
     public class Recorder : IDisposable
     {
         private const int ActionPersistInterval = 50;
-        private const int MaxErrorLogEntries = 1000;
 
         private readonly AutomationBase _automation;
         private readonly ICodeProvider _codeProvider;
@@ -22,6 +21,7 @@ namespace FlaUIRecorder.Internal
         private readonly ClickRecognizeWorker _clickWorker;
         private readonly KeyboardWorker _keyboardWorker;
         private readonly int _targetProcessId;
+        private readonly object _actionsLock = new object();
         private AutomationElement _selectedElementOverride;
         private int _actionsSinceLastPersist;
 
@@ -117,7 +117,7 @@ namespace FlaUIRecorder.Internal
                 Comment = comment,
                 Timestamp = DateTime.Now
             };
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.RecordAction(string.Empty, string.Empty, string.Empty, ActionType.Comment.ToString(), comment);
             NotifyActionRecorded(action);
         }
@@ -131,7 +131,7 @@ namespace FlaUIRecorder.Internal
                 WaitDurationMs = durationMs,
                 Timestamp = DateTime.Now
             };
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.RecordAction(string.Empty, string.Empty, string.Empty, ActionType.Wait.ToString(), string.Empty);
             NotifyActionRecorded(action);
         }
@@ -145,7 +145,7 @@ namespace FlaUIRecorder.Internal
             _codeProvider.AssertValue(element, expected);
             var action = CreateActionFromElement(element, ActionType.Assert);
             action.ExpectedValue = expected;
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.RecordAction(action.AutomationId, action.Name, action.ControlType, ActionType.Assert.ToString(), expected);
             NotifyActionRecorded(action);
         }
@@ -184,7 +184,7 @@ namespace FlaUIRecorder.Internal
 
             var fromAction = CreateActionFromElement(e.FromElement, ActionType.Drag);
             FillTargetElement(fromAction, e.ToElement);
-            Actions.Add(fromAction);
+            lock (_actionsLock) { Actions.Add(fromAction); }
             _codeProvider.Drag(e.FromElement, e.ToElement);
             _codeProvider.RecordAction(fromAction.AutomationId, fromAction.Name, fromAction.ControlType, ActionType.Drag.ToString(), fromAction.TargetAutomationId);
             NotifyActionRecorded(fromAction);
@@ -197,7 +197,7 @@ namespace FlaUIRecorder.Internal
 
             var action = CreateActionFromElement(e.Element, ActionType.Scroll);
             action.ScrollDelta = e.Delta;
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.Scroll(e.Element, e.Delta);
             _codeProvider.RecordAction(action.AutomationId, action.Name, action.ControlType, ActionType.Scroll.ToString(), e.Delta.ToString());
             NotifyActionRecorded(action);
@@ -210,7 +210,7 @@ namespace FlaUIRecorder.Internal
 
             var action = CreateActionFromElement(e.Element, ActionType.HoverStay);
             action.HoverDurationMs = e.DurationMs;
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.HoverStay(e.Element, e.DurationMs);
             _codeProvider.RecordAction(action.AutomationId, action.Name, action.ControlType, ActionType.HoverStay.ToString(), e.DurationMs.ToString());
             NotifyActionRecorded(action);
@@ -234,7 +234,7 @@ namespace FlaUIRecorder.Internal
 
             var action = CreateActionFromElement(e.Element, ActionType.TextInput);
             action.TextValue = e.Text;
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.TextInput(e.Element, e.Text);
             _codeProvider.RecordAction(action.AutomationId, action.Name, action.ControlType, ActionType.TextInput.ToString(), e.Text);
             NotifyActionRecorded(action);
@@ -251,7 +251,7 @@ namespace FlaUIRecorder.Internal
                 KeyName = e.KeyName,
                 Timestamp = DateTime.Now
             };
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.KeyPress(e.KeyName);
             _codeProvider.RecordAction(string.Empty, string.Empty, string.Empty, ActionType.KeyPress.ToString(), e.KeyName);
             NotifyActionRecorded(action);
@@ -260,7 +260,7 @@ namespace FlaUIRecorder.Internal
         private void RecordActionFromElement(AutomationElement e, ActionType type)
         {
             var action = CreateActionFromElement(e, type);
-            Actions.Add(action);
+            lock (_actionsLock) { Actions.Add(action); }
             _codeProvider.RecordAction(action.AutomationId, action.Name, action.ControlType, type.ToString(), string.Empty);
             NotifyActionRecorded(action);
         }
@@ -268,16 +268,7 @@ namespace FlaUIRecorder.Internal
         private void NotifyActionRecorded(RecordedAction action)
         {
             ActionRecorded?.Invoke(this, action);
-            TrimErrorLog();
             PersistActionsIfNeeded();
-        }
-
-        private void TrimErrorLog()
-        {
-            while (RecorderErrorLog.Count > MaxErrorLogEntries)
-            {
-                RecorderErrorLog.RemoveOldest();
-            }
         }
 
         private void PersistActionsIfNeeded()
@@ -290,8 +281,12 @@ namespace FlaUIRecorder.Internal
             try
             {
                 var path = Path.Combine(Path.GetTempPath(), "FlaUIRecorder_actions_temp.json");
-                var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-                File.WriteAllText(path, serializer.Serialize(Actions));
+                string json;
+                lock (_actionsLock)
+                {
+                    json = JsonSerializer.Serialize(Actions);
+                }
+                File.WriteAllText(path, json);
             }
             catch (Exception ex)
             {
@@ -305,12 +300,26 @@ namespace FlaUIRecorder.Internal
             string name = string.Empty;
             string controlType = string.Empty;
 
-            if (e.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
-                automationId = aid;
-            if (e.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
-                name = n;
-            if (e.Properties.ControlType.TryGetValue(out var ct))
-                controlType = ct.ToString();
+            try
+            {
+                if (e.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
+                    automationId = aid;
+            }
+            catch (Exception ex) { RecorderErrorLog.RecordError(ex, "Recorder.CreateActionFromElement.AutomationId"); }
+
+            try
+            {
+                if (e.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
+                    name = n;
+            }
+            catch (Exception ex) { RecorderErrorLog.RecordError(ex, "Recorder.CreateActionFromElement.Name"); }
+
+            try
+            {
+                if (e.Properties.ControlType.TryGetValue(out var ct))
+                    controlType = ct.ToString();
+            }
+            catch (Exception ex) { RecorderErrorLog.RecordError(ex, "Recorder.CreateActionFromElement.ControlType"); }
 
             return new RecordedAction
             {
@@ -324,12 +333,16 @@ namespace FlaUIRecorder.Internal
 
         private static void FillTargetElement(RecordedAction action, AutomationElement target)
         {
-            if (target.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
-                action.TargetAutomationId = aid;
-            if (target.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
-                action.TargetName = n;
-            if (target.Properties.ControlType.TryGetValue(out var ct))
-                action.TargetControlType = ct.ToString();
+            try
+            {
+                if (target.Properties.AutomationId.TryGetValue(out var aid) && !string.IsNullOrEmpty(aid))
+                    action.TargetAutomationId = aid;
+                if (target.Properties.Name.TryGetValue(out var n) && !string.IsNullOrEmpty(n))
+                    action.TargetName = n;
+                if (target.Properties.ControlType.TryGetValue(out var ct))
+                    action.TargetControlType = ct.ToString();
+            }
+            catch (Exception ex) { RecorderErrorLog.RecordError(ex, "Recorder.FillTargetElement"); }
         }
 
         private static string GetElementValue(AutomationElement element)
@@ -341,8 +354,9 @@ namespace FlaUIRecorder.Internal
 
                 return element.AsTextBox()?.Text ?? string.Empty;
             }
-            catch
+            catch (Exception ex)
             {
+                RecorderErrorLog.RecordError(ex, "Recorder.GetElementValue");
                 return string.Empty;
             }
         }

@@ -1,4 +1,4 @@
-﻿using FlaUI.Core.AutomationElements.Infrastructure;
+﻿using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using System;
 using System.Text.RegularExpressions;
@@ -24,8 +24,10 @@ namespace FlaUIRecorder.CodeProvider.CSharp
 
         public static string GetVariableName(AutomationElement element, AutomationElement parent = null)
         {
-            var controlTypeName = GetControlTypeName(element);
-            string baseName = null;
+            try
+            {
+                var controlTypeName = GetControlTypeName(element);
+                string baseName = null;
 
             if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
                 baseName = ToCamelCaseIdentifier(SanitizeIdentifier(automationId));
@@ -44,6 +46,9 @@ namespace FlaUIRecorder.CodeProvider.CSharp
                 return baseName + controlTypeName;
 
             return baseName;
+            }
+            catch (System.Runtime.InteropServices.COMException) { return "element"; }
+            catch (InvalidOperationException) { return "element"; }
         }
 
         public static string SanitizeIdentifier(string value)

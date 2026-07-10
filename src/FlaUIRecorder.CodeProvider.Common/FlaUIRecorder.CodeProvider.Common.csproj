@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <AssemblyName>FlaUIRecorder.CodeProvider.Common</AssemblyName>
     <RootNamespace>FlaUIRecorder.CodeProvider.Common</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FlaUI.Core" Version="1.2.0" />
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
   </ItemGroup>
 </Project>

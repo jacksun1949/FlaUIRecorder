@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core;
 using System.Diagnostics;
 using FlaUI.Core.AutomationElements;
@@ -65,7 +65,7 @@ namespace FlaUIRecorder.CodeProvider.Common
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"GetElementPathToRoot: {ex.Message}");
                 }
             }
 
@@ -151,13 +151,18 @@ namespace FlaUIRecorder.CodeProvider.Common
             if (ReferenceEquals(element, mainWindow))
                 return true;
 
-            if (element.Properties.NativeWindowHandle.TryGetValue(out var elementHandle)
-                && mainWindow.Properties.NativeWindowHandle.TryGetValue(out var mainWindowHandle)
-                && elementHandle != IntPtr.Zero
-                && elementHandle == mainWindowHandle)
+            try
             {
-                return true;
+                if (element.Properties.NativeWindowHandle.TryGetValue(out var elementHandle)
+                    && mainWindow.Properties.NativeWindowHandle.TryGetValue(out var mainWindowHandle)
+                    && elementHandle != IntPtr.Zero
+                    && elementHandle == mainWindowHandle)
+                {
+                    return true;
+                }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return false;
         }
@@ -167,32 +172,42 @@ namespace FlaUIRecorder.CodeProvider.Common
             if (element == null || TargetProcess == null)
                 return false;
 
-            if (!element.Properties.ProcessId.TryGetValue(out var processId))
-                return true;
+            try
+            {
+                if (!element.Properties.ProcessId.TryGetValue(out var processId))
+                    return true;
 
-            return processId == TargetProcess.Id;
+                return processId == TargetProcess.Id;
+            }
+            catch (System.Runtime.InteropServices.COMException) { return true; }
+            catch (InvalidOperationException) { return true; }
         }
 
         protected int GetControlTypeChildIndex(AutomationElement element)
         {
-            var parent = GetParentOrMainWindow(element);
-            if (parent == null || !element.Properties.ControlType.TryGetValue(out var controlType))
-                return 0;
-
-            var children = parent.FindAllChildren(c => c.ByControlType(controlType));
-            for (var i = 0; i < children.Length; i++)
+            try
             {
-                if (ReferenceEquals(children[i], element))
-                    return i;
+                var parent = GetParentOrMainWindow(element);
+                if (parent == null || !element.Properties.ControlType.TryGetValue(out var controlType))
+                    return 0;
 
-                if (element.Properties.AutomationId.TryGetValue(out var automationId)
-                    && !string.IsNullOrEmpty(automationId)
-                    && children[i].Properties.AutomationId.TryGetValue(out var childAutomationId)
-                    && childAutomationId == automationId)
+                var children = parent.FindAllChildren(c => c.ByControlType(controlType));
+                for (var i = 0; i < children.Length; i++)
                 {
-                    return i;
+                    if (ReferenceEquals(children[i], element))
+                        return i;
+
+                    if (element.Properties.AutomationId.TryGetValue(out var automationId)
+                        && !string.IsNullOrEmpty(automationId)
+                        && children[i].Properties.AutomationId.TryGetValue(out var childAutomationId)
+                        && childAutomationId == automationId)
+                    {
+                        return i;
+                    }
                 }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return 0;
         }
@@ -203,6 +218,31 @@ namespace FlaUIRecorder.CodeProvider.Common
                 return string.Empty;
 
             return Regex.Replace(value, "[^a-zA-Z0-9_]", string.Empty);
+        }
+
+        protected static string GetElementLabel(AutomationElement element)
+        {
+            if (element == null)
+                return "(null)";
+
+            try
+            {
+                string name = null;
+                element.Properties.Name.TryGetValue(out name);
+                if (!string.IsNullOrEmpty(name))
+                    return name;
+
+                string automationId = null;
+                element.Properties.AutomationId.TryGetValue(out automationId);
+                if (!string.IsNullOrEmpty(automationId))
+                    return automationId;
+
+                if (element.Properties.ControlType.TryGetValue(out var controlType))
+                    return controlType.ToString();
+            }
+            catch { }
+
+            return "element";
         }
 
         protected SelectorInfo BuildSelector(AutomationElement element, bool requireEnabled = true)

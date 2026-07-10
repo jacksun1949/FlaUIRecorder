@@ -138,9 +138,9 @@ namespace FlaUIRecorder
                     }
                 }
             }
-            catch //(Exception ex)
+            catch (Exception ex)
             {
-                //ex.HandleException();
+                RecorderErrorLog.RecordError(ex, "MainForm.GetExecutableByProcess");
             }
 
             return result;
@@ -165,7 +165,7 @@ namespace FlaUIRecorder
                if (process.HasExited)
                    throw new InvalidOperationException("The target application has exited before showing a main window.");
                return process.MainWindowHandle == IntPtr.Zero;
-           }, timeout, new TimeSpan?(TimeSpan.FromMilliseconds(50.0)));
+           }, result => result, timeout, TimeSpan.FromMilliseconds(50.0));
 
             return process;
         }

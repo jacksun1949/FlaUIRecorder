@@ -21,16 +21,16 @@ namespace FlaUIRecorder.Internal
         public const int HOTKEY_CANCEL = 5;
         public const int HOTKEY_ELEMENT_TREE = 6;
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         public static extern bool SetForegroundWindow(IntPtr handle);
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         public static extern bool ShowWindow(IntPtr handle, int nCmdShow);
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         public static extern bool IsIconic(IntPtr handle);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -39,10 +39,10 @@ namespace FlaUIRecorder.Internal
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         public static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
 
-        [DllImport("shcore.dll")]
+        [DllImport("shcore.dll", SetLastError = true)]
         public static extern int SetProcessDpiAwareness(int value);
 
         public static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);

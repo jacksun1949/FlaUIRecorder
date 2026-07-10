@@ -1,6 +1,6 @@
 using EventHook;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
 using System;
@@ -259,14 +259,22 @@ namespace FlaUIRecorder.Internal.Worker
 
         private bool IsTextInputElement(AutomationElement element)
         {
-            if (!IsTargetElement(element) || !element.Properties.ControlType.TryGetValue(out var controlType))
+            if (!IsTargetElement(element))
                 return false;
 
-            foreach (var textType in TextInputControlTypes)
+            try
             {
-                if (controlType == textType)
-                    return true;
+                if (!element.Properties.ControlType.TryGetValue(out var controlType))
+                    return false;
+
+                foreach (var textType in TextInputControlTypes)
+                {
+                    if (controlType == textType)
+                        return true;
+                }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return false;
         }

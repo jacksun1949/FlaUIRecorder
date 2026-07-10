@@ -1,7 +1,7 @@
 ﻿using EventHook;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements.Infrastructure;
-using FlaUI.Core.Shapes;
+using FlaUI.Core.AutomationElements;
+using System.Drawing;
 using System;
 using System.Threading.Tasks;
 

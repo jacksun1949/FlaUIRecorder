@@ -1,5 +1,5 @@
 ﻿using FlaUI.Core.AutomationElements;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.UIA2.Identifiers;
 using System;
 using System.Collections.Generic;

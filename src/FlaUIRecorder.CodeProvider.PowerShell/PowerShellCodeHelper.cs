@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 
 
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 
 
 
@@ -21,87 +21,51 @@ namespace FlaUIRecorder.CodeProvider.PowerShell
     {
 
         public static string GetVariableName(AutomationElement element, AutomationElement parent = null)
-
         {
-
             if (null == element)
-
                 throw new ArgumentNullException(nameof(element));
 
-
-
-            var parts = new List<string>();
-
-
-
-            if (parent != null && parent.Properties.Name.TryGetValue(out var parentName) && !string.IsNullOrEmpty(parentName))
-
+            try
             {
+                var parts = new List<string>();
 
-                var sanitizedParent = SanitizeNamePart(parentName);
+                if (parent != null && parent.Properties.Name.TryGetValue(out var parentName) && !string.IsNullOrEmpty(parentName))
+                {
+                    var sanitizedParent = SanitizeNamePart(parentName);
+                    if (!string.IsNullOrEmpty(sanitizedParent))
+                        parts.Add(sanitizedParent);
+                }
 
-                if (!string.IsNullOrEmpty(sanitizedParent))
+                if (element.Properties.Name.TryGetValue(out var rawName) && !string.IsNullOrEmpty(rawName))
+                {
+                    var sanitized = SanitizeNamePart(rawName);
+                    if (!string.IsNullOrEmpty(sanitized))
+                        parts.Add(sanitized);
+                }
 
-                    parts.Add(sanitizedParent);
+                if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
+                {
+                    var sanitizedId = SanitizeNamePart(automationId);
+                    if (!string.IsNullOrEmpty(sanitizedId) && !parts.Any(p => string.Equals(p, sanitizedId, StringComparison.OrdinalIgnoreCase)))
+                        parts.Add(sanitizedId);
+                }
 
+                string controlTypeName;
+                if (element.Properties.ControlType.TryGetValue(out var controlType))
+                    controlTypeName = controlType.ToString();
+                else
+                    controlTypeName = "Item";
+
+                if (parts.Count > 0)
+                {
+                    var combined = string.Join(string.Empty, parts.Select(p => char.ToUpper(p[0]) + p.Substring(1)));
+                    return char.ToLower(combined[0]) + combined.Substring(1) + controlTypeName;
+                }
+
+                return char.ToLower(controlTypeName[0]) + controlTypeName.Substring(1);
             }
-
-
-
-            if (element.Properties.Name.TryGetValue(out var rawName) && !string.IsNullOrEmpty(rawName))
-
-            {
-
-                var sanitized = SanitizeNamePart(rawName);
-
-                if (!string.IsNullOrEmpty(sanitized))
-
-                    parts.Add(sanitized);
-
-            }
-
-
-
-            if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
-
-            {
-
-                var sanitizedId = SanitizeNamePart(automationId);
-
-                if (!string.IsNullOrEmpty(sanitizedId) && !parts.Any(p => string.Equals(p, sanitizedId, StringComparison.OrdinalIgnoreCase)))
-
-                    parts.Add(sanitizedId);
-
-            }
-
-
-
-            string controlTypeName;
-
-            if (element.Properties.ControlType.TryGetValue(out var controlType))
-
-                controlTypeName = controlType.ToString();
-
-            else
-
-                controlTypeName = "Item";
-
-
-
-            if (parts.Count > 0)
-
-            {
-
-                var combined = string.Join(string.Empty, parts.Select(p => char.ToUpper(p[0]) + p.Substring(1)));
-
-                return char.ToLower(combined[0]) + combined.Substring(1) + controlTypeName;
-
-            }
-
-
-
-            return char.ToLower(controlTypeName[0]) + controlTypeName.Substring(1);
-
+            catch (System.Runtime.InteropServices.COMException) { return "element"; }
+            catch (InvalidOperationException) { return "element"; }
         }
 
 

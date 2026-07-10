@@ -91,8 +91,8 @@ namespace FlaUIRecorder
         {
             UnregisterHotkeys();
             _statusTimer.Stop();
-            base.OnClosed(e);
             _recorder?.Dispose();
+            base.OnClosed(e);
             _mainForm = null;
         }
 

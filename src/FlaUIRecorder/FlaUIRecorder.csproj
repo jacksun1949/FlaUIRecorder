@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputType>WinExe</OutputType>
     <AssemblyName>FlaUIRecorder</AssemblyName>
@@ -8,23 +8,13 @@
     <ApplicationIcon>UIExplorer.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EventHook" Version="1.4.39" />
-    <PackageReference Include="FlaUI.Core" Version="1.2.0" />
-    <PackageReference Include="FlaUI.UIA2" Version="1.2.0" />
-    <PackageReference Include="FlaUI.UIA3" Version="1.2.0" />
-    <PackageReference Include="Nito.AsyncEx" Version="3.0.1" />
-    <PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Management" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="PresentationCore" />
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+    <PackageReference Include="FlaUI.UIA2" Version="5.0.0" />
+    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlaUIRecorder.CodeProvider.Common\FlaUIRecorder.CodeProvider.Common.csproj" />

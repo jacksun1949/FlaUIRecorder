@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUIRecorder.CodeProvider.Common;
 using FlaUIRecorder.CodeProvider.Common.Internals;
 

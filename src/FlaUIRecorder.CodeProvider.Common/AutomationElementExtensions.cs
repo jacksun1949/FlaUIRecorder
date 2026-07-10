@@ -1,4 +1,4 @@
-﻿using FlaUI.Core.AutomationElements.Infrastructure;
+﻿using FlaUI.Core.AutomationElements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +17,14 @@ namespace FlaUIRecorder.CodeProvider.Common
         /// <returns></returns>
         public static bool IsControlType(this AutomationElement element, FlaUI.Core.Definitions.ControlType typeToCheck)
         {
-            if (element.Properties.ControlType.TryGetValue(out var type))
-                return type == typeToCheck;
-            else
-                return false;
+            try
+            {
+                if (element.Properties.ControlType.TryGetValue(out var type))
+                    return type == typeToCheck;
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
+            return false;
         }
 
         /// <summary>

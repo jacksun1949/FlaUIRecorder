@@ -39,6 +39,7 @@ namespace FlaUIRecorder
                     target = FindTargetProcess(processName);
                     return target == null;
                 },
+                result => result,
                 TimeSpan.FromSeconds(3),
                 TimeSpan.FromMilliseconds(150));
 
@@ -84,9 +85,115 @@ namespace FlaUIRecorder
                 .FirstOrDefault();
         }";
 
-        // Upgrade path: the recorder stays on FlaUI 1.2.0 / net461.
-        // Exported projects may target FlaUI 4.x / net472 via ExportOptions.
-        // API changes between 1.x and 4.x (namespaces, condition builders, retry helpers) require manual review after export.
+        private const string AutomationExecutorClass = @"
+    public class AutomationExecutor
+    {
+        private int _step, _passed, _failed;
+        private readonly DateTime _startTime = DateTime.Now;
+
+        public int Passed => _passed;
+        public int Failed => _failed;
+
+        public void ExecuteStep(string description, Action action, bool continueOnError = true)
+        {
+            _step++;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            Console.Write($""[{DateTime.Now:HH:mm:ss.fff}] Step {_step,3}: {description} "");
+
+            try
+            {
+                action();
+                sw.Stop();
+                Console.WriteLine($""OK ({sw.Elapsed.TotalSeconds:F1}s)"");
+                _passed++;
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                Console.WriteLine($""FAIL ({sw.Elapsed.TotalSeconds:F1}s)"");
+                Console.WriteLine($""                          Reason: {ex.Message}"");
+                _failed++;
+                if (!continueOnError) throw;
+            }
+        }
+
+        public AutomationElement FindElement(AutomationElement parent, Func<ConditionFactory, ConditionBase> conditionFn, double timeoutSeconds = 5)
+        {
+            var result = FlaUI.Core.Tools.Retry.While(
+                () => parent.FindFirstDescendant(conditionFn),
+                e => e == null,
+                TimeSpan.FromSeconds(timeoutSeconds),
+                TimeSpan.FromMilliseconds(200)).Result;
+
+            if (result == null)
+                throw new InvalidOperationException(""Element not found after retry"");
+
+            try { FlaUI.Core.Tools.Retry.While(() => !result.IsEnabled, r => r, TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(100)); } catch { }
+            return result;
+        }
+
+        public void SafeClick(AutomationElement element, FlaUI.Core.Input.MouseButton button = FlaUI.Core.Input.MouseButton.Left, bool doubleClick = false)
+        {
+            if (element == null) return;
+            try { FlaUI.Core.Tools.Retry.While(() => !element.IsEnabled, r => r, TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(100)); } catch { }
+            var point = GetElementClickPoint(element);
+            if (doubleClick)
+                FlaUI.Core.Input.Mouse.DoubleClick(point, button);
+            else
+                FlaUI.Core.Input.Mouse.Click(point, button);
+        }
+
+        public void SafeType(AutomationElement element, string text)
+        {
+            if (element == null) return;
+            try { FlaUI.Core.Tools.Retry.While(() => !element.IsEnabled, r => r, TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(100)); } catch { }
+            try { element.Focus(); } catch { }
+            try { element.AsTextBox()?.Enter(text); } catch { }
+        }
+
+        public void SafeDrag(AutomationElement from, AutomationElement to)
+        {
+            try
+            {
+                var start = GetElementClickPoint(from);
+                FlaUI.Core.Input.Mouse.MoveTo(start);
+                FlaUI.Core.Input.Mouse.Down(FlaUI.Core.Input.MouseButton.Left);
+                var end = GetElementClickPoint(to);
+                FlaUI.Core.Input.Mouse.MoveTo(end);
+                FlaUI.Core.Input.Mouse.Up(FlaUI.Core.Input.MouseButton.Left);
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
+        }
+
+        public void PrintSummary()
+        {
+            var elapsed = (DateTime.Now - _startTime).TotalSeconds;
+            Console.WriteLine();
+            Console.WriteLine(""========================================"");
+            Console.WriteLine($""  Passed: {_passed}   Failed: {_failed}   Duration: {elapsed:F1}s"");
+            Console.WriteLine(""========================================"");
+            if (_failed > 0) Environment.ExitCode = 1;
+        }
+
+        private System.Drawing.Point GetElementClickPoint(AutomationElement element)
+        {
+            try { return element.GetClickablePoint(); }
+            catch
+            {
+                try
+                {
+                    var r = element.Properties.BoundingRectangle.Value;
+                    if (!r.IsEmpty && r.Width > 0 && r.Height > 0)
+                        return new System.Drawing.Point(r.Left + r.Width / 2, r.Top + r.Height / 2);
+                }
+                catch { }
+                return new System.Drawing.Point(0, 0);
+            }
+        }
+    }";
+
+        // Upgrade path: the recorder runs on FlaUI 5.0 / net8.0-windows.
+        // Exported projects default to the same version, with optional legacy 4.0 target.
 
         public static string Export(RecorderProject project, string exportDir, string projectName, ExportOptions options = null)
         {
@@ -126,15 +233,17 @@ namespace FlaUIRecorder
             File.WriteAllText(Path.Combine(exportDir, "Program.cs"), screenshotWrapper);
 
             var upgradeComment = options.IsFlaUI40
-                ? $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework}. Review API migration from 1.2.0. -->"
-                : $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework} (recorder-compatible). -->";
+                ? $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework}. Legacy target; review API differences from 5.0. -->"
+                : $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework}. -->";
+
+            var windowsFormsEntry = targetFramework.StartsWith("net8") ? "    <UseWindowsForms>true</UseWindowsForms>\n" : "";
 
             var csproj = $@"{upgradeComment}
 <Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>{targetFramework}</TargetFramework>
-    <LangVersion>latest</LangVersion>
+{windowsFormsEntry}    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include=""FlaUI.Core"" Version=""{flaUIVersion}"" />
@@ -145,6 +254,11 @@ namespace FlaUIRecorder
 
             return exportDir;
         }
+
+        private const string DpiAwarenessInit = @"
+        [System.Runtime.InteropServices.DllImport(""user32.dll"")]
+        static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
+        static readonly IntPtr DPI_AWARE_PER_MONITOR_V2 = new IntPtr(-4);";
 
         private static string BuildStandardProgram(string automationNs, string automationType, string executable, string launchArguments)
         {
@@ -162,8 +276,10 @@ namespace RecordedAutomation
     class Program
     {{
 {LaunchOrAttachHelper}
+{DpiAwarenessInit}
         static void Main()
         {{
+            try {{ SetProcessDpiAwarenessContext(DPI_AWARE_PER_MONITOR_V2); }} catch {{ }}
             using (var app = LaunchOrAttach(@""{executable}""{launchArguments}))
             using (var automation = new {automationType}())
             {{
@@ -191,8 +307,10 @@ namespace RecordedAutomation
     class Program
     {{
 {LaunchOrAttachHelper}
+{DpiAwarenessInit}
         static void Main()
         {{
+            try {{ SetProcessDpiAwarenessContext(DPI_AWARE_PER_MONITOR_V2); }} catch {{ }}
             using (var app = LaunchOrAttach(@""{executable}""{launchArguments}))
             using (var automation = new {automationType}())
             {{
@@ -205,7 +323,7 @@ namespace RecordedAutomation
                 {{
                     var errorsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ""errors"");
                     Directory.CreateDirectory(errorsDir);
-                    var fileName = Path.Combine(errorsDir, $""error_{{DateTime.Now:yyyyMMdd_HHmmss}}.png"");
+                    var fileName = Path.Combine(errorsDir, $""error_{DateTime.Now:yyyyMMdd_HHmmss}.png"");
                     try {{ window.Capture().Save(fileName); }} catch {{ }}
                     throw new InvalidOperationException($""Automation failed. Screenshot: {{fileName}}"", ex);
                 }}
@@ -225,11 +343,21 @@ namespace RecordedAutomation
 
                 if (!string.IsNullOrWhiteSpace(session.Code))
                 {
-                    body.AppendLine(SanitizeSessionCode(session.Code));
+                    if (options.ContinueOnError)
+                    {
+                        body.AppendLine($"exec.ExecuteStep(\"Session {session.StartTime:g}\", () => {{");
+                        var sessionCode = SanitizeSessionCode(session.Code);
+                        body.AppendLine("    " + sessionCode.Replace("\n", "\n    ").TrimEnd());
+                        body.AppendLine("});");
+                    }
+                    else
+                    {
+                        body.AppendLine(SanitizeSessionCode(session.Code));
+                    }
                 }
                 else if (session.Actions != null && session.Actions.Count > 0)
                 {
-                    body.AppendLine(GenerateFromActions(session.Actions, usePageObjects));
+                    body.AppendLine(GenerateFromActions(session.Actions, usePageObjects, options.ContinueOnError));
                 }
                 else
                 {
@@ -241,26 +369,33 @@ namespace RecordedAutomation
 
             var bodyText = body.ToString();
             var sb = new StringBuilder();
+            sb.AppendLine("using FlaUI.Core;");
             sb.AppendLine("using FlaUI.Core.AutomationElements;");
+            sb.AppendLine("using FlaUI.Core.Definitions;");
+            sb.AppendLine("using FlaUI.Core.Input;");
             sb.AppendLine("using System;");
+            sb.AppendLine("using System.Diagnostics;");
+            sb.AppendLine("using System.Linq;");
             if (usePageObjects)
                 sb.AppendLine("using RecordedAutomation.Pages;");
             sb.AppendLine();
             sb.AppendLine("namespace RecordedAutomation");
             sb.AppendLine("{");
+            AppendIndentedLines(sb, AutomationExecutorClass, "    ");
+            sb.AppendLine();
             sb.AppendLine("    public class RecordedAutomation");
             sb.AppendLine("    {");
             AppendIndentedLines(sb, SafeClickCodeGenerator.CSharpStaticHelperMethod, "        ");
             sb.AppendLine();
             sb.AppendLine("        public void Run(Window window)");
             sb.AppendLine("        {");
-            sb.AppendLine("            " + MenuWaitHelper);
-
-            if (!bodyText.Contains(RetryFindComment))
-                sb.AppendLine("            " + RetryFindComment);
-
+            sb.AppendLine("            var exec = new AutomationExecutor();");
+            sb.AppendLine("            void W() { System.Threading.Thread.Sleep(500); }");
+            sb.AppendLine("            void WaitForMenuAnimation() { System.Threading.Thread.Sleep(500); }");
             sb.AppendLine();
             AppendIndentedLines(sb, bodyText, "            ");
+            sb.AppendLine();
+            sb.AppendLine("            exec.PrintSummary();");
             sb.AppendLine("        }");
             sb.AppendLine("    }");
             sb.AppendLine("}");
@@ -408,7 +543,7 @@ namespace RecordedAutomation
                 });
         }
 
-        private static string GenerateFromActions(IReadOnlyList<RecordedAction> actions, bool usePageObjects)
+        private static string GenerateFromActions(IReadOnlyList<RecordedAction> actions, bool usePageObjects, bool continueOnError = false)
         {
             var sb = new StringBuilder();
             var existingVariables = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "window" };
@@ -421,23 +556,37 @@ namespace RecordedAutomation
                 if (usePageObjects && IsWindowBoundary(action))
                     currentPageClass = SanitizePageClassName(action.Name ?? action.AutomationId ?? "Window");
 
+                if (action.Type == ActionType.Comment)
+                {
+                    if (!string.IsNullOrEmpty(action.Comment))
+                        sb.AppendLine("// " + action.Comment);
+                    continue;
+                }
+
+                // For Wait actions, generate directly without executor wrapper
+                if (action.Type == ActionType.Wait)
+                {
+                    sb.AppendLine($"exec.ExecuteStep(\"Wait {action.WaitDurationMs}ms\", () => {{");
+                    if (action.WaitDurationMs <= 0)
+                        sb.AppendLine("    FlaUI.Core.Tools.Retry.While(() => false, r => r, TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(1));");
+                    else
+                        sb.AppendLine($"    System.Threading.Thread.Sleep({action.WaitDurationMs});");
+                    sb.AppendLine($"}}, {continueOnError.ToString().ToLowerInvariant()});");
+                    sb.AppendLine();
+                    continue;
+                }
+
+                // Build step description
+                var desc = GetStepDescription(action);
+                sb.AppendLine($"exec.ExecuteStep(\"{desc}\", () => {{");
+
+                // Generate the inner action code
+                var innerSb = new StringBuilder();
                 switch (action.Type)
                 {
-                    case ActionType.Comment:
-                        if (!string.IsNullOrEmpty(action.Comment))
-                            sb.AppendLine("// " + action.Comment);
-                        break;
-
-                    case ActionType.Wait:
-                        if (action.WaitDurationMs <= 0)
-                            sb.AppendLine("FlaUI.Core.Tools.Retry.While(() => false, TimeSpan.FromMilliseconds(1)); // Wait for input processing");
-                        else
-                            sb.AppendLine($"System.Threading.Thread.Sleep({action.WaitDurationMs});");
-                        break;
-
                     case ActionType.KeyPress:
                         if (!string.IsNullOrEmpty(action.KeyName))
-                            sb.AppendLine(KeyPressCodeGenerator.BuildCSharpKeyPress(action.KeyName));
+                            innerSb.AppendLine(KeyPressCodeGenerator.BuildCSharpKeyPress(action.KeyName));
                         break;
 
                     case ActionType.Click:
@@ -448,12 +597,34 @@ namespace RecordedAutomation
                     case ActionType.Drag:
                     case ActionType.Scroll:
                     case ActionType.HoverStay:
-                        AppendElementAction(sb, action, existingVariables, elementKeyToVariable, ref retryCommentAdded, usePageObjects, currentPageClass);
+                        AppendElementAction(innerSb, action, existingVariables, elementKeyToVariable, ref retryCommentAdded, usePageObjects, currentPageClass);
                         break;
                 }
+
+                AppendIndentedLines(sb, innerSb.ToString(), "    ");
+                sb.AppendLine($"}}, {continueOnError.ToString().ToLowerInvariant()});");
+                sb.AppendLine();
             }
 
             return sb.ToString().TrimEnd();
+        }
+
+        private static string GetStepDescription(RecordedAction action)
+        {
+            var label = GetActionDescription(action);
+            switch (action.Type)
+            {
+                case ActionType.Click: return $"Click '{label}'";
+                case ActionType.RightClick: return $"Right-click '{label}'";
+                case ActionType.DoubleClick: return $"Double-click '{label}'";
+                case ActionType.TextInput: return $"Enter '{action.TextValue ?? ""}' into '{label}'";
+                case ActionType.KeyPress: return $"Press key '{action.KeyName}'";
+                case ActionType.Assert: return $"Assert '{label}' equals '{action.ExpectedValue ?? ""}'";
+                case ActionType.Drag: return $"Drag '{label}' to '{action.TargetName ?? action.TargetAutomationId ?? "target"}'";
+                case ActionType.Scroll: return $"Scroll on '{label}'";
+                case ActionType.HoverStay: return $"Hover on '{label}' for {action.HoverDurationMs}ms";
+                default: return action.Type.ToString();
+            }
         }
 
         private static bool NeedsElement(RecordedAction action)
@@ -480,16 +651,10 @@ namespace RecordedAutomation
                 variableName = CreateUniqueVariableName(action, existingVariables);
                 elementKeyToVariable[elementKey] = variableName;
                 var selector = BuildSelectorFromAction(action);
-                var description = GetActionDescription(action);
+                var condition = SelectorBuilder.BuildCSharpCondition(selector);
 
-                if (!retryCommentAdded)
-                {
-                    sb.AppendLine(RetryFindComment);
-                    retryCommentAdded = true;
-                }
-
-                AppendFindStatement(sb, variableName, "window", selector);
-                sb.AppendLine($"if ({variableName} == null) throw new InvalidOperationException(\"Could not find element '{description}'\");");
+                // BuildCSharpCondition returns "cf.ByAutomationId(...)" — wrap as lambda
+                sb.AppendLine($"var {variableName} = exec.FindElement(window, cf => {condition});");
             }
 
             if (usePageObjects && !string.IsNullOrEmpty(currentPageClass) && action.Type == ActionType.Click)
@@ -501,21 +666,21 @@ namespace RecordedAutomation
             switch (action.Type)
             {
                 case ActionType.Click:
-                    sb.AppendLine(SafeClickCodeGenerator.BuildCSharpClick(variableName));
+                    sb.AppendLine($"exec.SafeClick({variableName});");
                     if (string.Equals(action.ControlType, ControlType.MenuItem.ToString(), StringComparison.OrdinalIgnoreCase))
-                        sb.AppendLine("WaitForMenuAnimation();");
+                        sb.AppendLine("W();");
                     break;
 
                 case ActionType.RightClick:
-                    sb.AppendLine(SafeClickCodeGenerator.BuildCSharpRightClick(variableName));
+                    sb.AppendLine($"exec.SafeClick({variableName}, FlaUI.Core.Input.MouseButton.Right);");
                     break;
 
                 case ActionType.DoubleClick:
-                    sb.AppendLine(SafeClickCodeGenerator.BuildCSharpDoubleClick(variableName));
+                    sb.AppendLine($"exec.SafeClick({variableName}, doubleClick: true);");
                     break;
 
                 case ActionType.TextInput:
-                    sb.AppendLine($"{variableName}.Enter(\"{SelectorBuilder.EscapeString(action.TextValue ?? string.Empty)}\");");
+                    sb.AppendLine($"exec.SafeType({variableName}, \"{SelectorBuilder.EscapeString(action.TextValue ?? string.Empty)}\");");
                     break;
 
                 case ActionType.Assert:
@@ -536,7 +701,7 @@ namespace RecordedAutomation
                     break;
 
                 case ActionType.HoverStay:
-                    sb.AppendLine($"System.Threading.Thread.Sleep({action.HoverDurationMs}); // Hover-stay");
+                    sb.AppendLine($"System.Threading.Thread.Sleep({action.HoverDurationMs});");
                     break;
             }
         }
@@ -553,8 +718,8 @@ namespace RecordedAutomation
             {
                 fromVar = CreateUniqueVariableName(action, existingVariables);
                 elementKeyToVariable[fromKey] = fromVar;
-                if (!retryCommentAdded) { sb.AppendLine(RetryFindComment); retryCommentAdded = true; }
-                AppendFindStatement(sb, fromVar, "window", BuildSelectorFromAction(action));
+                var fromCondition = SelectorBuilder.BuildCSharpCondition(BuildSelectorFromAction(action));
+                sb.AppendLine($"var {fromVar} = exec.FindElement(window, cf => {fromCondition});");
             }
 
             var targetAction = new RecordedAction
@@ -569,10 +734,11 @@ namespace RecordedAutomation
             {
                 toVar = CreateUniqueVariableName(targetAction, existingVariables);
                 elementKeyToVariable[toKey] = toVar;
-                AppendFindStatement(sb, toVar, "window", BuildSelectorFromAction(targetAction));
+                var toCondition = SelectorBuilder.BuildCSharpCondition(BuildSelectorFromAction(targetAction));
+                sb.AppendLine($"var {toVar} = exec.FindElement(window, cf => {toCondition});");
             }
 
-            sb.AppendLine(SafeClickCodeGenerator.BuildCSharpDrag(fromVar, toVar));
+            sb.AppendLine($"exec.SafeDrag({fromVar}, {toVar});");
         }
 
         private static string BuildElementKey(RecordedAction action)
@@ -622,47 +788,51 @@ namespace RecordedAutomation
         private static void AppendFindStatement(StringBuilder sb, string variableName, string parentVariableName, SelectorInfo selector)
         {
             string findExpression;
+            string label = selector.Description ?? selector.ControlType?.ToString() ?? "element";
 
             if (selector.FindMethod == SelectorFindMethod.FindAllChildren && selector.ControlType.HasValue)
             {
                 findExpression =
-                    $"{parentVariableName}.FindAllChildren(e => e.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value}))[{selector.ChildIndex}]";
+                    $"{parentVariableName}.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value}))[{selector.ChildIndex}]";
             }
             else
             {
                 var condition = SelectorBuilder.BuildCSharpCondition(selector);
                 var findMethod = selector.FindMethod == SelectorFindMethod.FindFirstChild ? "FindFirstChild" : "FindFirstDescendant";
-                findExpression = $"{parentVariableName}.{findMethod}(e => {condition})";
+                findExpression = $"{parentVariableName}.{findMethod}(cf => {condition})";
             }
 
+            sb.AppendLine($"// Find '{label}'");
             sb.AppendLine($"var {variableName} = FlaUI.Core.Tools.Retry.While(");
             sb.AppendLine($"    () => {findExpression},");
             sb.AppendLine("    e => e == null,");
             sb.AppendLine("    TimeSpan.FromSeconds(5),");
-            sb.AppendLine("    TimeSpan.FromMilliseconds(200));");
+            sb.AppendLine("    TimeSpan.FromMilliseconds(200)).Result;");
         }
 
         private static void AppendFindExpression(StringBuilder sb, string parentVariableName, SelectorInfo selector, string indent)
         {
             string findExpression;
+            string label = selector.Description ?? selector.ControlType?.ToString() ?? "element";
 
             if (selector.FindMethod == SelectorFindMethod.FindAllChildren && selector.ControlType.HasValue)
             {
                 findExpression =
-                    $"{parentVariableName}.FindAllChildren(e => e.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value}))[{selector.ChildIndex}]";
+                    $"{parentVariableName}.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value}))[{selector.ChildIndex}]";
             }
             else
             {
                 var condition = SelectorBuilder.BuildCSharpCondition(selector);
                 var findMethod = selector.FindMethod == SelectorFindMethod.FindFirstChild ? "FindFirstChild" : "FindFirstDescendant";
-                findExpression = $"{parentVariableName}.{findMethod}(e => {condition})";
+                findExpression = $"{parentVariableName}.{findMethod}(cf => {condition})";
             }
 
+            sb.AppendLine($"{indent}// Find '{label}'");
             sb.AppendLine($"{indent}FlaUI.Core.Tools.Retry.While(");
             sb.AppendLine($"{indent}    () => {findExpression},");
             sb.AppendLine($"{indent}    e => e == null,");
             sb.AppendLine($"{indent}    TimeSpan.FromSeconds(5),");
-            sb.AppendLine($"{indent}    TimeSpan.FromMilliseconds(200));");
+            sb.AppendLine($"{indent}    TimeSpan.FromMilliseconds(200)).Result;");
         }
 
         private static string CreateUniqueVariableName(RecordedAction action, HashSet<string> existingVariables)

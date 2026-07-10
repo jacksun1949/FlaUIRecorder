@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
-using FlaUI.Core.AutomationElements.Infrastructure;
+using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 
 namespace FlaUIRecorder.CodeProvider.Common
@@ -22,19 +23,23 @@ namespace FlaUIRecorder.CodeProvider.Common
 
         public static SelectorInfo Build(AutomationElement element, bool requireEnabled = true)
         {
-            var selector = new SelectorInfo
+            var selector = new SelectorInfo();
+
+            try
             {
-                RequireEnabled = requireEnabled && IsClickable(element)
-            };
+                selector.RequireEnabled = requireEnabled && IsClickable(element);
 
-            if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
-                selector.AutomationId = automationId;
+                if (element.Properties.AutomationId.TryGetValue(out var automationId) && !string.IsNullOrEmpty(automationId))
+                    selector.AutomationId = automationId;
 
-            if (element.Properties.Name.TryGetValue(out var name) && !string.IsNullOrEmpty(name))
-                selector.Name = name;
+                if (element.Properties.Name.TryGetValue(out var name) && !string.IsNullOrEmpty(name))
+                    selector.Name = name;
 
-            if (element.Properties.ControlType.TryGetValue(out var controlType))
-                selector.ControlType = controlType;
+                if (element.Properties.ControlType.TryGetValue(out var controlType))
+                    selector.ControlType = controlType;
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             if (!string.IsNullOrEmpty(selector.AutomationId))
             {
@@ -58,14 +63,22 @@ namespace FlaUIRecorder.CodeProvider.Common
 
         public static bool IsClickable(AutomationElement element)
         {
-            if (element == null || !element.Properties.ControlType.TryGetValue(out var controlType))
+            if (element == null)
                 return false;
 
-            foreach (var clickable in ClickableControlTypes)
+            try
             {
-                if (controlType == clickable)
-                    return true;
+                if (!element.Properties.ControlType.TryGetValue(out var controlType))
+                    return false;
+
+                foreach (var clickable in ClickableControlTypes)
+                {
+                    if (controlType == clickable)
+                        return true;
+                }
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            catch (InvalidOperationException) { }
 
             return false;
         }
@@ -83,21 +96,22 @@ namespace FlaUIRecorder.CodeProvider.Common
             var parts = new List<string>();
 
             if (!string.IsNullOrEmpty(selector.AutomationId))
-                parts.Add($"e.ByAutomationId(\"{EscapeString(selector.AutomationId)}\")");
+                parts.Add($"cf.ByAutomationId(\"{EscapeString(selector.AutomationId)}\")");
 
             if (selector.ControlType.HasValue)
-                parts.Add($"e.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value})");
+                parts.Add($"cf.ByControlType(FlaUI.Core.Definitions.ControlType.{selector.ControlType.Value})");
 
             if (!string.IsNullOrEmpty(selector.Name))
-                parts.Add($"e.ByName(\"{EscapeString(selector.Name)}\")");
+                parts.Add($"cf.ByName(\"{EscapeString(selector.Name)}\")");
 
             if (parts.Count == 0)
-                return "e => true";
+                return "cf => cf.True()";
 
             var result = new StringBuilder(parts[0]);
             for (var i = 1; i < parts.Count; i++)
                 result.Append($".And({parts[i]})");
 
+            // Returns the body expression (e.g. "cf.ByAutomationId(...)") — caller wraps with lambda prefix
             return result.ToString();
         }
 
