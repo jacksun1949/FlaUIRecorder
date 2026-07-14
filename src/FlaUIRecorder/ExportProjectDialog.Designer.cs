@@ -34,6 +34,7 @@ namespace FlaUIRecorder
             _chkPageObjects = new System.Windows.Forms.CheckBox();
             _chkScreenshotOnFailure = new System.Windows.Forms.CheckBox();
             _chkContinueOnError = new System.Windows.Forms.CheckBox();
+            _chkHtmlReport = new System.Windows.Forms.CheckBox();
             _btnOk = new System.Windows.Forms.Button();
             _btnCancel = new System.Windows.Forms.Button();
             SuspendLayout();
@@ -41,7 +42,7 @@ namespace FlaUIRecorder
             // lblFlaUI
             // 
             lblFlaUI.AutoSize = true;
-            lblFlaUI.Location = new System.Drawing.Point(12, 12);
+            lblFlaUI.Location = new System.Drawing.Point(12, 7);
             lblFlaUI.Name = "lblFlaUI";
             lblFlaUI.Size = new System.Drawing.Size(477, 32);
             lblFlaUI.TabIndex = 0;
@@ -51,7 +52,7 @@ namespace FlaUIRecorder
             // 
             _rdbFlaUI50.AutoSize = true;
             _rdbFlaUI50.Checked = true;
-            _rdbFlaUI50.Location = new System.Drawing.Point(28, 52);
+            _rdbFlaUI50.Location = new System.Drawing.Point(28, 42);
             _rdbFlaUI50.Name = "_rdbFlaUI50";
             _rdbFlaUI50.Size = new System.Drawing.Size(510, 36);
             _rdbFlaUI50.TabIndex = 1;
@@ -62,7 +63,7 @@ namespace FlaUIRecorder
             // _rdbFlaUI40
             // 
             _rdbFlaUI40.AutoSize = true;
-            _rdbFlaUI40.Location = new System.Drawing.Point(28, 95);
+            _rdbFlaUI40.Location = new System.Drawing.Point(28, 78);
             _rdbFlaUI40.Name = "_rdbFlaUI40";
             _rdbFlaUI40.Size = new System.Drawing.Size(310, 36);
             _rdbFlaUI40.TabIndex = 2;
@@ -72,7 +73,7 @@ namespace FlaUIRecorder
             // _chkPageObjects
             // 
             _chkPageObjects.AutoSize = true;
-            _chkPageObjects.Location = new System.Drawing.Point(12, 142);
+            _chkPageObjects.Location = new System.Drawing.Point(12, 113);
             _chkPageObjects.Name = "_chkPageObjects";
             _chkPageObjects.Size = new System.Drawing.Size(353, 36);
             _chkPageObjects.TabIndex = 3;
@@ -84,7 +85,7 @@ namespace FlaUIRecorder
             _chkScreenshotOnFailure.AutoSize = true;
             _chkScreenshotOnFailure.Checked = true;
             _chkScreenshotOnFailure.CheckState = System.Windows.Forms.CheckState.Checked;
-            _chkScreenshotOnFailure.Location = new System.Drawing.Point(12, 181);
+            _chkScreenshotOnFailure.Location = new System.Drawing.Point(12, 150);
             _chkScreenshotOnFailure.Name = "_chkScreenshotOnFailure";
             _chkScreenshotOnFailure.Size = new System.Drawing.Size(549, 36);
             _chkScreenshotOnFailure.TabIndex = 4;
@@ -96,19 +97,31 @@ namespace FlaUIRecorder
             _chkContinueOnError.AutoSize = true;
             _chkContinueOnError.Checked = true;
             _chkContinueOnError.CheckState = System.Windows.Forms.CheckState.Checked;
-            _chkContinueOnError.Location = new System.Drawing.Point(12, 222);
+            _chkContinueOnError.Location = new System.Drawing.Point(12, 187);
             _chkContinueOnError.Name = "_chkContinueOnError";
             _chkContinueOnError.Size = new System.Drawing.Size(497, 36);
             _chkContinueOnError.TabIndex = 5;
             _chkContinueOnError.Text = "Continue on error (log failures, don't stop)";
             _chkContinueOnError.UseVisualStyleBackColor = true;
             // 
+            // _chkHtmlReport
+            // 
+            _chkHtmlReport.AutoSize = true;
+            _chkHtmlReport.Checked = true;
+            _chkHtmlReport.CheckState = System.Windows.Forms.CheckState.Checked;
+            _chkHtmlReport.Location = new System.Drawing.Point(12, 222);
+            _chkHtmlReport.Name = "_chkHtmlReport";
+            _chkHtmlReport.Size = new System.Drawing.Size(331, 36);
+            _chkHtmlReport.TabIndex = 5;
+            _chkHtmlReport.Text = "Generate HTML test report";
+            _chkHtmlReport.UseVisualStyleBackColor = true;
+            // 
             // _btnOk
             // 
             _btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            _btnOk.Location = new System.Drawing.Point(450, 269);
+            _btnOk.Location = new System.Drawing.Point(394, 259);
             _btnOk.Name = "_btnOk";
-            _btnOk.Size = new System.Drawing.Size(145, 45);
+            _btnOk.Size = new System.Drawing.Size(174, 43);
             _btnOk.TabIndex = 6;
             _btnOk.Text = "Export";
             _btnOk.UseVisualStyleBackColor = true;
@@ -116,9 +129,9 @@ namespace FlaUIRecorder
             // _btnCancel
             // 
             _btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            _btnCancel.Location = new System.Drawing.Point(619, 269);
+            _btnCancel.Location = new System.Drawing.Point(585, 255);
             _btnCancel.Name = "_btnCancel";
-            _btnCancel.Size = new System.Drawing.Size(137, 46);
+            _btnCancel.Size = new System.Drawing.Size(177, 47);
             _btnCancel.TabIndex = 7;
             _btnCancel.Text = "Cancel";
             _btnCancel.UseVisualStyleBackColor = true;
@@ -129,9 +142,10 @@ namespace FlaUIRecorder
             AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             CancelButton = _btnCancel;
-            ClientSize = new System.Drawing.Size(768, 326);
+            ClientSize = new System.Drawing.Size(778, 314);
             Controls.Add(_btnCancel);
             Controls.Add(_btnOk);
+            Controls.Add(_chkHtmlReport);
             Controls.Add(_chkContinueOnError);
             Controls.Add(_chkScreenshotOnFailure);
             Controls.Add(_chkPageObjects);
@@ -157,6 +171,7 @@ namespace FlaUIRecorder
         private System.Windows.Forms.CheckBox _chkPageObjects;
         private System.Windows.Forms.CheckBox _chkScreenshotOnFailure;
         private System.Windows.Forms.CheckBox _chkContinueOnError;
+        private System.Windows.Forms.CheckBox _chkHtmlReport;
         private System.Windows.Forms.Button _btnOk;
         private System.Windows.Forms.Button _btnCancel;
     }

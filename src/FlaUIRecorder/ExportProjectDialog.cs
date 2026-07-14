@@ -25,7 +25,8 @@ namespace FlaUIRecorder
                     TargetFramework = _rdbFlaUI50.Checked ? "net7.0-windows" : "net472",
                     GeneratePageObjects = _chkPageObjects.Checked,
                     CaptureScreenshotOnFailure = _chkScreenshotOnFailure.Checked,
-                    ContinueOnError = _chkContinueOnError.Checked
+                    ContinueOnError = _chkContinueOnError.Checked,
+                    GenerateHtmlReport = _chkHtmlReport.Checked
                 };
             }
             base.OnFormClosing(e);

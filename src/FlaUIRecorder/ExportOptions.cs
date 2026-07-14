@@ -20,6 +20,7 @@ namespace FlaUIRecorder
         public string TargetFramework { get; set; } = "net7.0-windows";
         public bool GeneratePageObjects { get; set; } = true;
         public bool CaptureScreenshotOnFailure { get; set; } = true;
+        public bool GenerateHtmlReport { get; set; } = true;
         public int PageObjectActionThreshold { get; set; } = 10;
         public bool ContinueOnError { get; set; } = true;
 

@@ -114,13 +114,27 @@ namespace FlaUIRecorder
         }";
 
         private const string AutomationExecutorClass = @"
+    public class StepResult
+    {
+        public int Number { get; set; }
+        public string Description { get; set; }
+        public string Status { get; set; }    // ""Passed"" or ""Failed""
+        public double DurationSeconds { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Error { get; set; }
+        public string ScreenshotBase64 { get; set; }
+    }
+
     public class AutomationExecutor
     {
         private int _step, _passed, _failed;
         private readonly DateTime _startTime = DateTime.Now;
+        private readonly List<StepResult> _results = new List<StepResult>();
 
         public int Passed => _passed;
         public int Failed => _failed;
+        public DateTime StartTime => _startTime;
+        public IReadOnlyList<StepResult> Results => _results.AsReadOnly();
 
         public void ExecuteStep(string description, Action action, bool continueOnError = true)
         {
@@ -128,11 +142,19 @@ namespace FlaUIRecorder
             var sw = System.Diagnostics.Stopwatch.StartNew();
             Console.Write($""[{DateTime.Now:HH:mm:ss.fff}] Step {_step,3}: {description} "");
 
+            var result = new StepResult
+            {
+                Number = _step,
+                Description = description,
+                Timestamp = DateTime.Now
+            };
+
             try
             {
                 action();
                 sw.Stop();
                 Console.WriteLine($""OK ({sw.Elapsed.TotalSeconds:F1}s)"");
+                result.Status = ""Passed"";
                 _passed++;
             }
             catch (Exception ex)
@@ -140,9 +162,14 @@ namespace FlaUIRecorder
                 sw.Stop();
                 Console.WriteLine($""FAIL ({sw.Elapsed.TotalSeconds:F1}s)"");
                 Console.WriteLine($""                          Reason: {ex.Message}"");
+                result.Status = ""Failed"";
+                result.Error = ex.Message;
                 _failed++;
                 if (!continueOnError) throw;
             }
+
+            result.DurationSeconds = sw.Elapsed.TotalSeconds;
+            _results.Add(result);
         }
 
         public AutomationElement FindElement(AutomationElement parent, Func<ConditionFactory, ConditionBase> conditionFn, double timeoutSeconds = 5)
@@ -220,6 +247,150 @@ namespace FlaUIRecorder
         }
     }";
 
+        private const string TestReportClass = @"
+    public class TestReport
+    {
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public List<StepResult> Steps { get; set; } = new List<StepResult>();
+        public int Passed { get; set; }
+        public int Failed { get; set; }
+
+        public void Save(string path, Window window)
+        {
+            // Capture screenshots for failed steps
+            foreach (var step in Steps)
+            {
+                if (step.Status == ""Failed"" && window != null)
+                {
+                    try
+                    {
+                        using var bitmap = window.Capture();
+                        using var ms = new MemoryStream();
+                        bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                        step.ScreenshotBase64 = Convert.ToBase64String(ms.ToArray());
+                    }
+                    catch { }
+                }
+            }
+
+            var html = BuildHtml();
+            File.WriteAllText(path, html, Encoding.UTF8);
+        }
+
+        private string BuildHtml()
+        {
+            var duration = (EndTime - StartTime).TotalSeconds;
+            var sb = new StringBuilder();
+
+            sb.AppendLine(""<!DOCTYPE html>"");
+            sb.AppendLine(""<html lang=\""en\"">"");
+            sb.AppendLine(""<head>"");
+            sb.AppendLine(""<meta charset=\""UTF-8\"">"");
+            sb.AppendLine(""<meta name=\""viewport\"" content=\""width=device-width, initial-scale=1.0\"">"");
+            sb.AppendLine(""<title>FlaUIRecorder Test Report</title>"");
+            sb.AppendLine(ReportStyles);
+            sb.AppendLine(""</head>"");
+            sb.AppendLine(""<body>"");
+
+            // Header
+            sb.AppendLine(""<div class=\""header\"">"");
+            sb.AppendFormat(""  <h1>FlaUIRecorder Test Report</h1>\n"");
+            sb.AppendFormat(""  <p>Generated {0:yyyy-MM-dd HH:mm:ss}</p>\n"", DateTime.Now);
+            sb.AppendLine(""</div>"");
+
+            // Summary cards
+            sb.AppendLine(""<div class=\""summary\"">"");
+            sb.AppendFormat(""  <div class=\""summary-card card-pass\""><div class=\""value\"">{0}</div><div class=\""label\"">Passed</div></div>\n"", Passed);
+            sb.AppendFormat(""  <div class=\""summary-card card-fail\""><div class=\""value\"">{0}</div><div class=\""label\"">Failed</div></div>\n"", Failed);
+            sb.AppendFormat(""  <div class=\""summary-card card-time\""><div class=\""value\"">{0:F1}s</div><div class=\""label\"">Duration</div></div>\n"", duration);
+            sb.AppendLine(""</div>"");
+
+            // Step table
+            sb.AppendLine(""<div class=\""table-wrap\"">"");
+            sb.AppendLine(""  <table>"");
+            sb.AppendLine(""    <thead><tr><th>#</th><th>Description</th><th>Status</th><th>Duration</th><th>Time</th></tr></thead>"");
+            sb.AppendLine(""    <tbody>"");
+
+            foreach (var step in Steps)
+            {
+                var rowClass = step.Status == ""Passed"" ? ""step-pass"" : ""step-fail"";
+                var statusIcon = step.Status == ""Passed"" ? ""&#10003;"" : ""&#10007;"";
+                var desc = EscapeHtml(step.Description ?? """");
+                sb.AppendFormat(""      <tr class=\""{0}\"">\n"", rowClass);
+                sb.AppendFormat(""        <td class=\""num\"">{0}</td>\n"", step.Number);
+                sb.AppendFormat(""        <td class=\""desc\"">{0}</td>\n"", desc);
+                sb.AppendFormat(""        <td class=\""status\""><span class=\""badge\"">{0} {1}</span></td>\n"", statusIcon, step.Status);
+                sb.AppendFormat(""        <td class=\""time\"">{0:F1}s</td>\n"", step.DurationSeconds);
+                sb.AppendFormat(""        <td class=\""ts\"">{0:HH:mm:ss}</td>\n"", step.Timestamp);
+                sb.AppendLine(""      </tr>"");
+
+                if (step.Status == ""Failed"")
+                {
+                    var errMsg = EscapeHtml(step.Error ?? """");
+                    sb.AppendFormat(""      <tr class=\""step-fail-detail\""><td colspan=\""5\"">"");
+                    if (!string.IsNullOrEmpty(errMsg))
+                        sb.AppendFormat(""<div class=\""step-error\"">{0}</div>"", errMsg);
+                    if (!string.IsNullOrEmpty(step.ScreenshotBase64))
+                        sb.AppendFormat(""<details class=\""screenshot-detail\""><summary>Screenshot</summary><img src=\""data:image/png;base64,{0}\"" class=\""screenshot-img\"" /></details>"", step.ScreenshotBase64);
+                    sb.AppendLine(""</td></tr>"");
+                }
+            }
+
+            sb.AppendLine(""    </tbody>"");
+            sb.AppendLine(""  </table>"");
+            sb.AppendLine(""</div>"");
+
+            sb.AppendFormat(""<div class=\""footer\"">FlaUIRecorder &mdash; {0} steps executed in {1:F1}s</div>\n"", Passed + Failed, duration);
+            sb.AppendLine(""</body>"");
+            sb.AppendLine(""</html>"");
+
+            return sb.ToString();
+        }
+
+        private const string ReportStyles = @""
+<style>
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{ font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; }}
+  .header {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 30px 40px; }}
+  .header h1 {{ font-size: 24px; font-weight: 600; }}
+  .header p {{ opacity: 0.7; margin-top: 6px; font-size: 14px; }}
+  .summary {{ display: flex; gap: 20px; padding: 30px 40px; max-width: 900px; margin: 0 auto; }}
+  .summary-card {{ flex: 1; background: #fff; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }}
+  .summary-card .value {{ font-size: 36px; font-weight: 700; }}
+  .summary-card .label {{ font-size: 13px; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }}
+  .card-pass .value {{ color: #22c55e; }}
+  .card-fail .value {{ color: #ef4444; }}
+  .card-time .value {{ color: #3b82f6; }}
+  .table-wrap {{ max-width: 900px; margin: 0 auto 40px; padding: 0 40px; }}
+  table {{ width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }}
+  th {{ background: #f8f9fa; padding: 12px 16px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; border-bottom: 1px solid #e5e7eb; }}
+  td {{ padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }}
+  td.num {{ width: 50px; color: #999; }}
+  td.status {{ width: 100px; }}
+  td.time {{ width: 70px; text-align: right; font-family: monospace; }}
+  td.ts {{ width: 90px; text-align: right; font-size: 12px; color: #999; }}
+  .step-pass td {{ }}
+  .step-fail td {{ background: #fef2f2; }}
+  .step-fail-detail td {{ background: #fef2f2; padding: 0 16px 16px; }}
+  .step-pass-detail td {{ padding: 0; }}
+  .badge {{ display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }}
+  .step-pass .badge {{ background: #dcfce7; color: #166534; }}
+  .step-fail .badge {{ background: #fecaca; color: #991b1b; }}
+  .step-error {{ background: #fff; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #991b1b; font-family: monospace; white-space: pre-wrap; margin-bottom: 8px; }}
+  .screenshot-detail {{ margin-top: 8px; }}
+  .screenshot-detail summary {{ cursor: pointer; color: #3b82f6; font-size: 13px; }}
+  .screenshot-img {{ max-width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #e5e7eb; }}
+  .footer {{ text-align: center; padding: 20px; color: #999; font-size: 12px; }}
+</style>"";
+
+        private static string EscapeHtml(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            return text.Replace(""&"", ""&amp;"").Replace(""<"", ""&lt;"").Replace("">"", ""&gt;"");
+        }
+    }";
+
         // Upgrade path: the recorder runs on FlaUI 5.0 / net7.0-windows.
         // Exported projects default to the same version, with optional legacy 4.0 target.
 
@@ -255,8 +426,8 @@ namespace FlaUIRecorder
                 GeneratePageObjectFiles(project, exportDir, options);
 
             var screenshotWrapper = options.CaptureScreenshotOnFailure
-                ? WrapProgramWithScreenshotOnFailure(automationNs, automationType, executable, launchArguments)
-                : BuildStandardProgram(automationNs, automationType, executable, launchArguments);
+                ? WrapProgramWithScreenshotOnFailure(automationNs, automationType, executable, launchArguments, options.GenerateHtmlReport)
+                : BuildStandardProgram(automationNs, automationType, executable, launchArguments, options.GenerateHtmlReport);
 
             File.WriteAllText(Path.Combine(exportDir, "Program.cs"), screenshotWrapper);
 
@@ -301,8 +472,12 @@ namespace FlaUIRecorder
                 ShowWindow(hWnd, SW_MINIMIZE);
         }}";
 
-        private static string BuildStandardProgram(string automationNs, string automationType, string executable, string launchArguments)
+        private static string BuildStandardProgram(string automationNs, string automationType, string executable, string launchArguments, bool generateHtmlReport)
         {
+            var reportCall = generateHtmlReport
+                ? "                var report = new RecordedAutomation().Run(window);\r\n                report.Save(\"TestReport.html\", window);\r\n                Process.Start(new ProcessStartInfo(\"TestReport.html\") { UseShellExecute = true });"
+                : "                new RecordedAutomation().Run(window);";
+
             return $@"using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using {automationNs};
@@ -326,15 +501,19 @@ namespace RecordedAutomation
             using (var automation = new {automationType}())
             {{
                 var window = app.GetMainWindow(automation);
-                new RecordedAutomation().Run(window);
+{reportCall}
             }}
         }}
     }}
 }}";
         }
 
-        private static string WrapProgramWithScreenshotOnFailure(string automationNs, string automationType, string executable, string launchArguments)
+        private static string WrapProgramWithScreenshotOnFailure(string automationNs, string automationType, string executable, string launchArguments, bool generateHtmlReport)
         {
+            var reportCall = generateHtmlReport
+                ? "                    var report = new RecordedAutomation().Run(window);\r\n                    report.Save(\"TestReport.html\", window);\r\n                    Process.Start(new ProcessStartInfo(\"TestReport.html\") { UseShellExecute = true });"
+                : "                    new RecordedAutomation().Run(window);";
+
             return $@"using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using {automationNs};
@@ -360,7 +539,7 @@ namespace RecordedAutomation
                 var window = app.GetMainWindow(automation);
                 try
                 {{
-                    new RecordedAutomation().Run(window);
+{reportCall}
                 }}
                 catch (Exception ex)
                 {{
@@ -418,8 +597,11 @@ namespace RecordedAutomation
             sb.AppendLine("using FlaUI.Core.Definitions;");
             sb.AppendLine("using FlaUI.Core.Input;");
             sb.AppendLine("using System;");
+            sb.AppendLine("using System.Collections.Generic;");
             sb.AppendLine("using System.Diagnostics;");
+            sb.AppendLine("using System.IO;");
             sb.AppendLine("using System.Linq;");
+            sb.AppendLine("using System.Text;");
             if (usePageObjects)
                 sb.AppendLine("using RecordedAutomation.Pages;");
             sb.AppendLine();
@@ -427,11 +609,13 @@ namespace RecordedAutomation
             sb.AppendLine("{");
             AppendIndentedLines(sb, AutomationExecutorClass, "    ");
             sb.AppendLine();
+            AppendIndentedLines(sb, TestReportClass, "    ");
+            sb.AppendLine();
             sb.AppendLine("    public class RecordedAutomation");
             sb.AppendLine("    {");
             AppendIndentedLines(sb, SafeClickCodeGenerator.CSharpStaticHelperMethod, "        ");
             sb.AppendLine();
-            sb.AppendLine("        public void Run(Window window)");
+            sb.AppendLine("        public TestReport Run(Window window)");
             sb.AppendLine("        {");
             sb.AppendLine("            var exec = new AutomationExecutor();");
             sb.AppendLine("            void W() { System.Threading.Thread.Sleep(500); }");
@@ -440,6 +624,14 @@ namespace RecordedAutomation
             AppendIndentedLines(sb, bodyText, "            ");
             sb.AppendLine();
             sb.AppendLine("            exec.PrintSummary();");
+            sb.AppendLine("            return new TestReport");
+            sb.AppendLine("            {");
+            sb.AppendLine("                StartTime = exec.StartTime,");
+            sb.AppendLine("                EndTime = DateTime.Now,");
+            sb.AppendLine("                Passed = exec.Passed,");
+            sb.AppendLine("                Failed = exec.Failed,");
+            sb.AppendLine("                Steps = exec.Results.ToList()");
+            sb.AppendLine("            };");
             sb.AppendLine("        }");
             sb.AppendLine("    }");
             sb.AppendLine("}");
@@ -567,6 +759,7 @@ namespace RecordedAutomation
                 string.Empty,
                 RegexOptions.Multiline);
             sanitized = Regex.Replace(sanitized, @"(\w+)\.DragTo\((\w+)\)", "SafeDrag($1, $2)");
+            sanitized = Regex.Replace(sanitized, @"(\w+)\.Enter\(", "$1.AsTextBox()?.Enter(");
             sanitized = sanitized.Replace("element.BoundingRectangle", "element.Properties.BoundingRectangle.Value");
             return sanitized.TrimEnd();
         }
