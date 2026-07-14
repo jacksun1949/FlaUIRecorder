@@ -46,10 +46,17 @@ namespace FlaUIRecorder.CodeProvider.Common
                 }
             }
 
-            if (applicationRoot != null && element.Equals(applicationRoot)
-                && IsDesktopPane(element))
+            if (applicationRoot != null && IsDesktopPane(element))
             {
-                return true;
+                try
+                {
+                    if (element.Equals(applicationRoot))
+                        return true;
+                }
+                catch
+                {
+                    // Element may be disconnected; treat as non-shell.
+                }
             }
 
             try

@@ -1,4 +1,3 @@
-﻿using EventHook;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using System.Drawing;
@@ -12,17 +11,19 @@ namespace FlaUIRecorder.Internal.Worker
         private const int FromPointTimeoutMs = 500;
         private const int DoubleClickThresholdMs = 300;
         private const int DragThresholdPixels = 10;
+        private const int IsTargetTimeoutMs = 2000;
 
         private readonly AutomationBase _automation;
         private readonly HoverElementCache _hoverCache;
         private readonly int _targetProcessId;
         private readonly HookHealthMonitor _healthMonitor;
+        private readonly LowLevelMouseHook _mouseHook;
 
         private AutomationElement _lastClickElement;
         private DateTime _lastClickTime = DateTime.MinValue;
         private bool _isDragging;
         private AutomationElement _dragStartElement;
-        private EventHook.Hooks.POINT _dragStartPoint;
+        private HookPoint _dragStartPoint;
         private bool _pendingSingleClick;
         private AutomationElement _pendingClickElement;
 
@@ -41,27 +42,28 @@ namespace FlaUIRecorder.Internal.Worker
             _healthMonitor = new HookHealthMonitor("Mouse");
             _healthMonitor.StatusChanged += (s, msg) => StatusChanged?.Invoke(this, msg);
 
-            MouseWatcher.OnMouseInput += MouseWatcher_OnMouseInput;
+            _mouseHook = new LowLevelMouseHook();
+            _mouseHook.MouseEvent += MouseHook_OnMouseEvent;
         }
 
         public void Dispose()
         {
             Pause();
             _healthMonitor.Dispose();
-            MouseWatcher.OnMouseInput -= MouseWatcher_OnMouseInput;
+            _mouseHook.Dispose();
         }
 
         public void Start()
         {
             try
             {
-                MouseWatcher.Start();
+                _mouseHook.Start();
                 _healthMonitor.Start();
                 StatusChanged?.Invoke(this, "Mouse hook started");
             }
             catch (Exception ex)
             {
-                RecorderErrorLog.RecordError(ex, "MouseWatcher.Start");
+                RecorderErrorLog.RecordError(ex, "LowLevelMouseHook.Start");
                 StatusChanged?.Invoke(this, "Mouse hook failed to start");
             }
         }
@@ -72,22 +74,22 @@ namespace FlaUIRecorder.Internal.Worker
             _isDragging = false;
             try
             {
-                MouseWatcher.Stop();
+                _mouseHook.Stop();
             }
             catch (Exception ex)
             {
-                RecorderErrorLog.RecordError(ex, "MouseWatcher.Stop");
+                RecorderErrorLog.RecordError(ex, "LowLevelMouseHook.Stop");
             }
             _healthMonitor.Stop();
         }
 
-        private void MouseWatcher_OnMouseInput(object sender, EventHook.MouseEventArgs e)
+        private void MouseHook_OnMouseEvent(MouseEventData e)
         {
             try
             {
                 _healthMonitor.RecordEvent();
 
-                if (e.Message == EventHook.Hooks.MouseMessages.WM_LBUTTONDOWN)
+                if (e.Message == MouseMessage.WM_LBUTTONDOWN)
                 {
                     var hoveredElement = GetHoveredElement(e.Point);
                     if (hoveredElement == null)
@@ -97,7 +99,7 @@ namespace FlaUIRecorder.Internal.Worker
                     _dragStartElement = hoveredElement;
                     _dragStartPoint = e.Point;
                 }
-                else if (e.Message == EventHook.Hooks.MouseMessages.WM_LBUTTONUP)
+                else if (e.Message == MouseMessage.WM_LBUTTONUP)
                 {
                     var hoveredElement = GetHoveredElement(e.Point);
 
@@ -127,14 +129,14 @@ namespace FlaUIRecorder.Internal.Worker
                     _isDragging = false;
                     _dragStartElement = null;
                 }
-                else if (e.Message == EventHook.Hooks.MouseMessages.WM_RBUTTONDOWN)
+                else if (e.Message == MouseMessage.WM_RBUTTONDOWN)
                 {
                     FlushPendingClick();
                     var hoveredElement = GetHoveredElement(e.Point);
                     if (hoveredElement != null)
                         ElementRightClicked?.Invoke(this, hoveredElement);
                 }
-                else if (e.Message == EventHook.Hooks.MouseMessages.WM_MOUSEWHEEL)
+                else if (e.Message == MouseMessage.WM_MOUSEWHEEL)
                 {
                     FlushPendingClick();
                     var hoveredElement = GetHoveredElement(e.Point);
@@ -194,7 +196,7 @@ namespace FlaUIRecorder.Internal.Worker
             _pendingClickElement = null;
         }
 
-        private AutomationElement GetHoveredElement(EventHook.Hooks.POINT point)
+        private AutomationElement GetHoveredElement(HookPoint point)
         {
             if (_hoverCache.TryGetNear(point.x, point.y, out var cachedElement) && IsTargetElement(cachedElement))
                 return cachedElement;
@@ -213,7 +215,7 @@ namespace FlaUIRecorder.Internal.Worker
             return null;
         }
 
-        private AutomationElement TryFromPoint(EventHook.Hooks.POINT point)
+        private AutomationElement TryFromPoint(HookPoint point)
         {
             AutomationElement result = null;
             Exception capturedException = null;
@@ -235,13 +237,15 @@ namespace FlaUIRecorder.Internal.Worker
 
             if (!task.Wait(FromPointTimeoutMs))
             {
-                RecorderErrorLog.RecordError(new TimeoutException($"FromPoint timed out after {FromPointTimeoutMs}ms"), "ClickRecognizeWorker.FromPoint");
+                RecorderErrorLog.RecordError(
+                    new TimeoutException($"FromPoint timed out after {FromPointTimeoutMs}ms at ({point.x},{point.y})"),
+                    "ClickRecognizeWorker.FromPoint");
                 StatusChanged?.Invoke(this, "UIA FromPoint timed out");
                 return null;
             }
 
             if (capturedException != null)
-                RecorderErrorLog.RecordError(capturedException, "ClickRecognizeWorker.FromPoint");
+                RecorderErrorLog.RecordError(capturedException, $"ClickRecognizeWorker.FromPoint({point.x},{point.y})");
 
             return result;
         }
@@ -251,15 +255,38 @@ namespace FlaUIRecorder.Internal.Worker
             if (element == null)
                 return false;
 
-            try
+            // UIA ProcessId access is a synchronous COM call that can block indefinitely
+            // if the target process is frozen/hung. Use a timeout to prevent deadlocks.
+            var processId = 0;
+            Exception capturedException = null;
+
+            var task = Task.Run(() =>
             {
-                return element.Properties.ProcessId == _targetProcessId;
-            }
-            catch (Exception ex)
+                try
+                {
+                    processId = element.Properties.ProcessId;
+                }
+                catch (Exception ex)
+                {
+                    capturedException = ex;
+                }
+            });
+
+            if (!task.Wait(IsTargetTimeoutMs))
             {
-                RecorderErrorLog.RecordError(ex, "ClickRecognizeWorker.IsTargetElement");
+                RecorderErrorLog.RecordError(
+                    new TimeoutException($"IsTargetElement.ProcessId timed out after {IsTargetTimeoutMs}ms"),
+                    "ClickRecognizeWorker.IsTargetElement");
                 return false;
             }
+
+            if (capturedException != null)
+            {
+                RecorderErrorLog.RecordError(capturedException, "ClickRecognizeWorker.IsTargetElement");
+                return false;
+            }
+
+            return processId == _targetProcessId;
         }
     }
 

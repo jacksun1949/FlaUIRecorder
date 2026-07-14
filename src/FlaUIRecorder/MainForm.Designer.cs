@@ -28,605 +28,595 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.rdbVersionUIA2 = new System.Windows.Forms.RadioButton();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.uiaTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.rdbVersionUIA3 = new System.Windows.Forms.RadioButton();
-            this.btnStart = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.cboCodeProvider = new System.Windows.Forms.ComboBox();
-            this.recorderProjectBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuOpen = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuSave = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuSaveAs = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuRecentProjects = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.targetAppTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.pathRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.rdbApplicationStart = new System.Windows.Forms.RadioButton();
-            this.txtApplicationPath = new System.Windows.Forms.TextBox();
-            this.btnApplicationBrowse = new System.Windows.Forms.Button();
-            this.argsRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.lblApplicationArgs = new System.Windows.Forms.Label();
-            this.txtApplicationArgs = new System.Windows.Forms.TextBox();
-            this.processRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.rdbApplicationProcess = new System.Windows.Forms.RadioButton();
-            this.cboApplicationProcess = new System.Windows.Forms.ComboBox();
-            this.btnProcessRefresh = new System.Windows.Forms.Button();
-            this.openApplicationDialog = new System.Windows.Forms.OpenFileDialog();
-            this.openProjectDialog = new System.Windows.Forms.OpenFileDialog();
-            this.saveProjectDialog = new System.Windows.Forms.SaveFileDialog();
-            this.lstSessions = new System.Windows.Forms.ListBox();
-            this.sessionsBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.label1 = new System.Windows.Forms.Label();
-            this.mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.leftTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.topSettingsTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.startPanel = new System.Windows.Forms.Panel();
-            this.rightTableLayout = new System.Windows.Forms.TableLayoutPanel();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.statusLabelReady = new System.Windows.Forms.ToolStripStatusLabel();
-            this.statusLabelErrors = new System.Windows.Forms.ToolStripStatusLabel();
-            this.groupBox1.SuspendLayout();
-            this.uiaTableLayout.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.recorderProjectBindingSource)).BeginInit();
-            this.menuStrip1.SuspendLayout();
-            this.groupBox3.SuspendLayout();
-            this.targetAppTableLayout.SuspendLayout();
-            this.pathRowTableLayout.SuspendLayout();
-            this.argsRowTableLayout.SuspendLayout();
-            this.processRowTableLayout.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sessionsBindingSource)).BeginInit();
-            this.mainTableLayout.SuspendLayout();
-            this.leftTableLayout.SuspendLayout();
-            this.topSettingsTableLayout.SuspendLayout();
-            this.startPanel.SuspendLayout();
-            this.rightTableLayout.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
-            this.SuspendLayout();
+            rdbVersionUIA2 = new System.Windows.Forms.RadioButton();
+            groupBox1 = new System.Windows.Forms.GroupBox();
+            uiaTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            rdbVersionUIA3 = new System.Windows.Forms.RadioButton();
+            btnStart = new System.Windows.Forms.Button();
+            groupBox2 = new System.Windows.Forms.GroupBox();
+            cboCodeProvider = new System.Windows.Forms.ComboBox();
+            recorderProjectBindingSource = new System.Windows.Forms.BindingSource(components);
+            menuStrip1 = new System.Windows.Forms.MenuStrip();
+            toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            mnuOpen = new System.Windows.Forms.ToolStripMenuItem();
+            mnuSave = new System.Windows.Forms.ToolStripMenuItem();
+            mnuSaveAs = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRecentProjects = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            groupBox3 = new System.Windows.Forms.GroupBox();
+            targetAppTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            pathRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            rdbApplicationStart = new System.Windows.Forms.RadioButton();
+            txtApplicationPath = new System.Windows.Forms.TextBox();
+            btnApplicationBrowse = new System.Windows.Forms.Button();
+            argsRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            lblApplicationArgs = new System.Windows.Forms.Label();
+            txtApplicationArgs = new System.Windows.Forms.TextBox();
+            processRowTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            rdbApplicationProcess = new System.Windows.Forms.RadioButton();
+            cboApplicationProcess = new System.Windows.Forms.ComboBox();
+            btnProcessRefresh = new System.Windows.Forms.Button();
+            openApplicationDialog = new System.Windows.Forms.OpenFileDialog();
+            openProjectDialog = new System.Windows.Forms.OpenFileDialog();
+            saveProjectDialog = new System.Windows.Forms.SaveFileDialog();
+            lstSessions = new System.Windows.Forms.ListBox();
+            sessionsBindingSource = new System.Windows.Forms.BindingSource(components);
+            label1 = new System.Windows.Forms.Label();
+            mainTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            leftTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            topSettingsTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            startPanel = new System.Windows.Forms.Panel();
+            rightTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            statusStrip1 = new System.Windows.Forms.StatusStrip();
+            statusLabelReady = new System.Windows.Forms.ToolStripStatusLabel();
+            statusLabelErrors = new System.Windows.Forms.ToolStripStatusLabel();
+            groupBox1.SuspendLayout();
+            uiaTableLayout.SuspendLayout();
+            groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)recorderProjectBindingSource).BeginInit();
+            menuStrip1.SuspendLayout();
+            groupBox3.SuspendLayout();
+            targetAppTableLayout.SuspendLayout();
+            pathRowTableLayout.SuspendLayout();
+            argsRowTableLayout.SuspendLayout();
+            processRowTableLayout.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)sessionsBindingSource).BeginInit();
+            mainTableLayout.SuspendLayout();
+            leftTableLayout.SuspendLayout();
+            topSettingsTableLayout.SuspendLayout();
+            startPanel.SuspendLayout();
+            rightTableLayout.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            SuspendLayout();
             // 
             // rdbVersionUIA2
             // 
-            this.rdbVersionUIA2.AutoSize = true;
-            this.rdbVersionUIA2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rdbVersionUIA2.Location = new System.Drawing.Point(3, 3);
-            this.rdbVersionUIA2.Name = "rdbVersionUIA2";
-            this.rdbVersionUIA2.Size = new System.Drawing.Size(246, 36);
-            this.rdbVersionUIA2.TabIndex = 0;
-            this.rdbVersionUIA2.Text = "UIA2 Managed";
-            this.rdbVersionUIA2.UseVisualStyleBackColor = true;
-            this.rdbVersionUIA2.CheckedChanged += new System.EventHandler(this.radioButton_CheckedChanged_UpdateDirty);
+            rdbVersionUIA2.AutoSize = true;
+            rdbVersionUIA2.Dock = System.Windows.Forms.DockStyle.Fill;
+            rdbVersionUIA2.Location = new System.Drawing.Point(3, 3);
+            rdbVersionUIA2.Name = "rdbVersionUIA2";
+            rdbVersionUIA2.Size = new System.Drawing.Size(246, 36);
+            rdbVersionUIA2.TabIndex = 0;
+            rdbVersionUIA2.Text = "UIA2 Managed";
+            rdbVersionUIA2.UseVisualStyleBackColor = true;
+            rdbVersionUIA2.CheckedChanged += radioButton_CheckedChanged_UpdateDirty;
             // 
             // groupBox1
             // 
-            this.groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.groupBox1.Controls.Add(this.uiaTableLayout);
-            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox1.Location = new System.Drawing.Point(0, 0);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
-            this.groupBox1.MinimumSize = new System.Drawing.Size(180, 0);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(8);
-            this.groupBox1.Size = new System.Drawing.Size(268, 154);
-            this.groupBox1.TabIndex = 1;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "UIA Version";
+            groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            groupBox1.Controls.Add(uiaTableLayout);
+            groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox1.Location = new System.Drawing.Point(0, 0);
+            groupBox1.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+            groupBox1.MinimumSize = new System.Drawing.Size(180, 0);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new System.Windows.Forms.Padding(8);
+            groupBox1.Size = new System.Drawing.Size(268, 154);
+            groupBox1.TabIndex = 1;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "UIA Version";
             // 
             // uiaTableLayout
             // 
-            this.uiaTableLayout.ColumnCount = 1;
-            this.uiaTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.uiaTableLayout.Controls.Add(this.rdbVersionUIA2, 0, 0);
-            this.uiaTableLayout.Controls.Add(this.rdbVersionUIA3, 0, 1);
-            this.uiaTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.uiaTableLayout.Location = new System.Drawing.Point(8, 40);
-            this.uiaTableLayout.Name = "uiaTableLayout";
-            this.uiaTableLayout.RowCount = 2;
-            this.uiaTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.uiaTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.uiaTableLayout.Size = new System.Drawing.Size(252, 106);
-            this.uiaTableLayout.TabIndex = 0;
+            uiaTableLayout.ColumnCount = 1;
+            uiaTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            uiaTableLayout.Controls.Add(rdbVersionUIA2, 0, 0);
+            uiaTableLayout.Controls.Add(rdbVersionUIA3, 0, 1);
+            uiaTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            uiaTableLayout.Location = new System.Drawing.Point(8, 40);
+            uiaTableLayout.Name = "uiaTableLayout";
+            uiaTableLayout.RowCount = 2;
+            uiaTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            uiaTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            uiaTableLayout.Size = new System.Drawing.Size(252, 106);
+            uiaTableLayout.TabIndex = 0;
             // 
             // rdbVersionUIA3
             // 
-            this.rdbVersionUIA3.AutoSize = true;
-            this.rdbVersionUIA3.Checked = true;
-            this.rdbVersionUIA3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rdbVersionUIA3.Location = new System.Drawing.Point(3, 45);
-            this.rdbVersionUIA3.Name = "rdbVersionUIA3";
-            this.rdbVersionUIA3.Size = new System.Drawing.Size(246, 58);
-            this.rdbVersionUIA3.TabIndex = 1;
-            this.rdbVersionUIA3.TabStop = true;
-            this.rdbVersionUIA3.Text = "UIA3 Interop";
-            this.rdbVersionUIA3.UseVisualStyleBackColor = true;
+            rdbVersionUIA3.AutoSize = true;
+            rdbVersionUIA3.Checked = true;
+            rdbVersionUIA3.Dock = System.Windows.Forms.DockStyle.Fill;
+            rdbVersionUIA3.Location = new System.Drawing.Point(3, 45);
+            rdbVersionUIA3.Name = "rdbVersionUIA3";
+            rdbVersionUIA3.Size = new System.Drawing.Size(246, 58);
+            rdbVersionUIA3.TabIndex = 1;
+            rdbVersionUIA3.TabStop = true;
+            rdbVersionUIA3.Text = "UIA3 Interop";
+            rdbVersionUIA3.UseVisualStyleBackColor = true;
             // 
             // btnStart
             // 
-            this.btnStart.AutoSize = true;
-            this.btnStart.Location = new System.Drawing.Point(3, 8);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(3, 8, 3, 3);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(181, 42);
-            this.btnStart.TabIndex = 2;
-            this.btnStart.Text = "Start recording";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            btnStart.AutoSize = true;
+            btnStart.Location = new System.Drawing.Point(3, 8);
+            btnStart.Margin = new System.Windows.Forms.Padding(3, 8, 3, 3);
+            btnStart.Name = "btnStart";
+            btnStart.Size = new System.Drawing.Size(195, 42);
+            btnStart.TabIndex = 2;
+            btnStart.Text = "Start recording";
+            btnStart.UseVisualStyleBackColor = true;
+            btnStart.Click += btnStart_Click;
             // 
             // groupBox2
             // 
-            this.groupBox2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.groupBox2.Controls.Add(this.cboCodeProvider);
-            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox2.Location = new System.Drawing.Point(280, 0);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(0);
-            this.groupBox2.MinimumSize = new System.Drawing.Size(200, 0);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(8);
-            this.groupBox2.Size = new System.Drawing.Size(506, 154);
-            this.groupBox2.TabIndex = 3;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Code provider";
+            groupBox2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            groupBox2.Controls.Add(cboCodeProvider);
+            groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox2.Location = new System.Drawing.Point(280, 0);
+            groupBox2.Margin = new System.Windows.Forms.Padding(0);
+            groupBox2.MinimumSize = new System.Drawing.Size(200, 0);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Padding = new System.Windows.Forms.Padding(8);
+            groupBox2.Size = new System.Drawing.Size(506, 154);
+            groupBox2.TabIndex = 3;
+            groupBox2.TabStop = false;
+            groupBox2.Text = "Code provider";
             // 
             // cboCodeProvider
             // 
-            this.cboCodeProvider.DataBindings.Add(new System.Windows.Forms.Binding("SelectedItem", this.recorderProjectBindingSource, "CodeProvider", true));
-            this.cboCodeProvider.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cboCodeProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboCodeProvider.FormattingEnabled = true;
-            this.cboCodeProvider.Location = new System.Drawing.Point(8, 40);
-            this.cboCodeProvider.Name = "cboCodeProvider";
-            this.cboCodeProvider.Size = new System.Drawing.Size(490, 40);
-            this.cboCodeProvider.TabIndex = 0;
+            cboCodeProvider.DataBindings.Add(new System.Windows.Forms.Binding("SelectedItem", recorderProjectBindingSource, "CodeProvider", true));
+            cboCodeProvider.Dock = System.Windows.Forms.DockStyle.Fill;
+            cboCodeProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cboCodeProvider.FormattingEnabled = true;
+            cboCodeProvider.Location = new System.Drawing.Point(8, 40);
+            cboCodeProvider.Name = "cboCodeProvider";
+            cboCodeProvider.Size = new System.Drawing.Size(490, 40);
+            cboCodeProvider.TabIndex = 0;
             // 
             // recorderProjectBindingSource
             // 
-            this.recorderProjectBindingSource.DataSource = typeof(FlaUIRecorder.RecorderProject);
-            this.recorderProjectBindingSource.BindingComplete += new System.Windows.Forms.BindingCompleteEventHandler(this.recorderProjectBindingSource_BindingComplete);
-            this.recorderProjectBindingSource.CurrentItemChanged += new System.EventHandler(this.recorderProjectBindingSource_CurrentItemChanged);
+            recorderProjectBindingSource.DataSource = typeof(RecorderProject);
+            recorderProjectBindingSource.BindingComplete += recorderProjectBindingSource_BindingComplete;
+            recorderProjectBindingSource.CurrentItemChanged += recorderProjectBindingSource_CurrentItemChanged;
             // 
             // menuStrip1
             // 
-            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
-            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem1});
-            this.menuStrip1.Location = new System.Drawing.Point(8, 8);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1346, 39);
-            this.menuStrip1.TabIndex = 4;
-            this.menuStrip1.Text = "menuStrip1";
+            menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripMenuItem1 });
+            menuStrip1.Location = new System.Drawing.Point(8, 8);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new System.Drawing.Size(1346, 39);
+            menuStrip1.TabIndex = 4;
+            menuStrip1.Text = "menuStrip1";
             // 
             // toolStripMenuItem1
             // 
-            this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuOpen,
-            this.mnuSave,
-            this.mnuSaveAs,
-            this.mnuRecentProjects,
-            this.toolStripSeparator1,
-            this.exitToolStripMenuItem});
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(73, 35);
-            this.toolStripMenuItem1.Text = "&File";
+            toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuOpen, mnuSave, mnuSaveAs, mnuRecentProjects, toolStripSeparator1, exitToolStripMenuItem });
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new System.Drawing.Size(73, 35);
+            toolStripMenuItem1.Text = "&File";
             // 
             // mnuOpen
             // 
-            this.mnuOpen.Name = "mnuOpen";
-            this.mnuOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.mnuOpen.Size = new System.Drawing.Size(390, 44);
-            this.mnuOpen.Text = "Open project";
-            this.mnuOpen.Click += new System.EventHandler(this.openProjectToolStripMenuItem_Click);
+            mnuOpen.Name = "mnuOpen";
+            mnuOpen.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
+            mnuOpen.Size = new System.Drawing.Size(390, 44);
+            mnuOpen.Text = "Open project";
+            mnuOpen.Click += openProjectToolStripMenuItem_Click;
             // 
             // mnuSave
             // 
-            this.mnuSave.Name = "mnuSave";
-            this.mnuSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.mnuSave.Size = new System.Drawing.Size(390, 44);
-            this.mnuSave.Text = "Save project";
-            this.mnuSave.Click += new System.EventHandler(this.mnuSave_Click);
+            mnuSave.Name = "mnuSave";
+            mnuSave.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S;
+            mnuSave.Size = new System.Drawing.Size(390, 44);
+            mnuSave.Text = "Save project";
+            mnuSave.Click += mnuSave_Click;
             // 
             // mnuSaveAs
             // 
-            this.mnuSaveAs.Name = "mnuSaveAs";
-            this.mnuSaveAs.Size = new System.Drawing.Size(390, 44);
-            this.mnuSaveAs.Text = "Save project as...";
-            this.mnuSaveAs.Click += new System.EventHandler(this.mnuSaveAs_Click);
+            mnuSaveAs.Name = "mnuSaveAs";
+            mnuSaveAs.Size = new System.Drawing.Size(390, 44);
+            mnuSaveAs.Text = "Save project as...";
+            mnuSaveAs.Click += mnuSaveAs_Click;
             // 
             // mnuRecentProjects
             // 
-            this.mnuRecentProjects.Name = "mnuRecentProjects";
-            this.mnuRecentProjects.Size = new System.Drawing.Size(390, 44);
-            this.mnuRecentProjects.Text = "Recent projects";
+            mnuRecentProjects.Name = "mnuRecentProjects";
+            mnuRecentProjects.Size = new System.Drawing.Size(390, 44);
+            mnuRecentProjects.Text = "Recent projects";
             // 
             // toolStripSeparator1
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(387, 6);
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new System.Drawing.Size(387, 6);
             // 
             // exitToolStripMenuItem
             // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(390, 44);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new System.Drawing.Size(390, 44);
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // groupBox3
             // 
-            this.groupBox3.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.groupBox3.Controls.Add(this.targetAppTableLayout);
-            this.groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox3.Location = new System.Drawing.Point(3, 169);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(3, 9, 3, 3);
-            this.groupBox3.MinimumSize = new System.Drawing.Size(0, 120);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(8);
-            this.groupBox3.Size = new System.Drawing.Size(786, 263);
-            this.groupBox3.TabIndex = 5;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Target application";
+            groupBox3.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            groupBox3.Controls.Add(targetAppTableLayout);
+            groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBox3.Location = new System.Drawing.Point(3, 169);
+            groupBox3.Margin = new System.Windows.Forms.Padding(3, 9, 3, 3);
+            groupBox3.MinimumSize = new System.Drawing.Size(0, 120);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Padding = new System.Windows.Forms.Padding(8);
+            groupBox3.Size = new System.Drawing.Size(786, 263);
+            groupBox3.TabIndex = 5;
+            groupBox3.TabStop = false;
+            groupBox3.Text = "Target application";
             // 
             // targetAppTableLayout
             // 
-            this.targetAppTableLayout.ColumnCount = 1;
-            this.targetAppTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.targetAppTableLayout.Controls.Add(this.pathRowTableLayout, 0, 0);
-            this.targetAppTableLayout.Controls.Add(this.argsRowTableLayout, 0, 1);
-            this.targetAppTableLayout.Controls.Add(this.processRowTableLayout, 0, 2);
-            this.targetAppTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.targetAppTableLayout.Location = new System.Drawing.Point(8, 40);
-            this.targetAppTableLayout.Name = "targetAppTableLayout";
-            this.targetAppTableLayout.RowCount = 3;
-            this.targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            this.targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            this.targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.targetAppTableLayout.Size = new System.Drawing.Size(770, 215);
-            this.targetAppTableLayout.TabIndex = 0;
+            targetAppTableLayout.ColumnCount = 1;
+            targetAppTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            targetAppTableLayout.Controls.Add(pathRowTableLayout, 0, 0);
+            targetAppTableLayout.Controls.Add(argsRowTableLayout, 0, 1);
+            targetAppTableLayout.Controls.Add(processRowTableLayout, 0, 2);
+            targetAppTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            targetAppTableLayout.Location = new System.Drawing.Point(8, 40);
+            targetAppTableLayout.Name = "targetAppTableLayout";
+            targetAppTableLayout.RowCount = 3;
+            targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            targetAppTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            targetAppTableLayout.Size = new System.Drawing.Size(770, 215);
+            targetAppTableLayout.TabIndex = 0;
             // 
             // pathRowTableLayout
             // 
-            this.pathRowTableLayout.ColumnCount = 3;
-            this.pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
-            this.pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.pathRowTableLayout.Controls.Add(this.rdbApplicationStart, 0, 0);
-            this.pathRowTableLayout.Controls.Add(this.txtApplicationPath, 1, 0);
-            this.pathRowTableLayout.Controls.Add(this.btnApplicationBrowse, 2, 0);
-            this.pathRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pathRowTableLayout.Location = new System.Drawing.Point(3, 3);
-            this.pathRowTableLayout.Name = "pathRowTableLayout";
-            this.pathRowTableLayout.RowCount = 1;
-            this.pathRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.pathRowTableLayout.Size = new System.Drawing.Size(764, 54);
-            this.pathRowTableLayout.TabIndex = 0;
+            pathRowTableLayout.ColumnCount = 3;
+            pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
+            pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            pathRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            pathRowTableLayout.Controls.Add(rdbApplicationStart, 0, 0);
+            pathRowTableLayout.Controls.Add(txtApplicationPath, 1, 0);
+            pathRowTableLayout.Controls.Add(btnApplicationBrowse, 2, 0);
+            pathRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            pathRowTableLayout.Location = new System.Drawing.Point(3, 3);
+            pathRowTableLayout.Name = "pathRowTableLayout";
+            pathRowTableLayout.RowCount = 1;
+            pathRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            pathRowTableLayout.Size = new System.Drawing.Size(764, 54);
+            pathRowTableLayout.TabIndex = 0;
             // 
             // rdbApplicationStart
             // 
-            this.rdbApplicationStart.AutoSize = true;
-            this.rdbApplicationStart.Checked = true;
-            this.rdbApplicationStart.Dock = System.Windows.Forms.DockStyle.Top;
-            this.rdbApplicationStart.Location = new System.Drawing.Point(3, 3);
-            this.rdbApplicationStart.Name = "rdbApplicationStart";
-            this.rdbApplicationStart.Size = new System.Drawing.Size(154, 36);
-            this.rdbApplicationStart.TabIndex = 2;
-            this.rdbApplicationStart.TabStop = true;
-            this.rdbApplicationStart.Text = "Path:";
-            this.rdbApplicationStart.UseVisualStyleBackColor = true;
-            this.rdbApplicationStart.CheckedChanged += new System.EventHandler(this.radioButton_CheckedChanged_UpdateDirty);
+            rdbApplicationStart.AutoSize = true;
+            rdbApplicationStart.Checked = true;
+            rdbApplicationStart.Dock = System.Windows.Forms.DockStyle.Top;
+            rdbApplicationStart.Location = new System.Drawing.Point(3, 3);
+            rdbApplicationStart.Name = "rdbApplicationStart";
+            rdbApplicationStart.Size = new System.Drawing.Size(154, 36);
+            rdbApplicationStart.TabIndex = 2;
+            rdbApplicationStart.TabStop = true;
+            rdbApplicationStart.Text = "Path:";
+            rdbApplicationStart.UseVisualStyleBackColor = true;
+            rdbApplicationStart.CheckedChanged += radioButton_CheckedChanged_UpdateDirty;
             // 
             // txtApplicationPath
             // 
-            this.txtApplicationPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.recorderProjectBindingSource, "Executable", true));
-            this.txtApplicationPath.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtApplicationPath.Location = new System.Drawing.Point(163, 3);
-            this.txtApplicationPath.Name = "txtApplicationPath";
-            this.txtApplicationPath.Size = new System.Drawing.Size(553, 39);
-            this.txtApplicationPath.TabIndex = 4;
-            this.txtApplicationPath.TextChanged += new System.EventHandler(this.radioButton_CheckedChanged_UpdateDirty);
+            txtApplicationPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", recorderProjectBindingSource, "Executable", true));
+            txtApplicationPath.Dock = System.Windows.Forms.DockStyle.Fill;
+            txtApplicationPath.Location = new System.Drawing.Point(163, 3);
+            txtApplicationPath.Name = "txtApplicationPath";
+            txtApplicationPath.Size = new System.Drawing.Size(550, 39);
+            txtApplicationPath.TabIndex = 4;
+            txtApplicationPath.TextChanged += radioButton_CheckedChanged_UpdateDirty;
             // 
             // btnApplicationBrowse
             // 
-            this.btnApplicationBrowse.AutoSize = true;
-            this.btnApplicationBrowse.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnApplicationBrowse.Location = new System.Drawing.Point(722, 3);
-            this.btnApplicationBrowse.Name = "btnApplicationBrowse";
-            this.btnApplicationBrowse.Size = new System.Drawing.Size(39, 42);
-            this.btnApplicationBrowse.TabIndex = 7;
-            this.btnApplicationBrowse.Text = "...";
-            this.btnApplicationBrowse.UseVisualStyleBackColor = true;
-            this.btnApplicationBrowse.Click += new System.EventHandler(this.btnApplicationBrowse_Click);
+            btnApplicationBrowse.AutoSize = true;
+            btnApplicationBrowse.Dock = System.Windows.Forms.DockStyle.Top;
+            btnApplicationBrowse.Location = new System.Drawing.Point(719, 3);
+            btnApplicationBrowse.Name = "btnApplicationBrowse";
+            btnApplicationBrowse.Size = new System.Drawing.Size(42, 42);
+            btnApplicationBrowse.TabIndex = 7;
+            btnApplicationBrowse.Text = "...";
+            btnApplicationBrowse.UseVisualStyleBackColor = true;
+            btnApplicationBrowse.Click += btnApplicationBrowse_Click;
             // 
             // argsRowTableLayout
             // 
-            this.argsRowTableLayout.ColumnCount = 2;
-            this.argsRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
-            this.argsRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.argsRowTableLayout.Controls.Add(this.lblApplicationArgs, 0, 0);
-            this.argsRowTableLayout.Controls.Add(this.txtApplicationArgs, 1, 0);
-            this.argsRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.argsRowTableLayout.Location = new System.Drawing.Point(3, 63);
-            this.argsRowTableLayout.Margin = new System.Windows.Forms.Padding(3, 3, 3, 6);
-            this.argsRowTableLayout.Name = "argsRowTableLayout";
-            this.argsRowTableLayout.RowCount = 1;
-            this.argsRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.argsRowTableLayout.Size = new System.Drawing.Size(764, 51);
-            this.argsRowTableLayout.TabIndex = 1;
+            argsRowTableLayout.ColumnCount = 2;
+            argsRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
+            argsRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            argsRowTableLayout.Controls.Add(lblApplicationArgs, 0, 0);
+            argsRowTableLayout.Controls.Add(txtApplicationArgs, 1, 0);
+            argsRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            argsRowTableLayout.Location = new System.Drawing.Point(3, 63);
+            argsRowTableLayout.Margin = new System.Windows.Forms.Padding(3, 3, 3, 6);
+            argsRowTableLayout.Name = "argsRowTableLayout";
+            argsRowTableLayout.RowCount = 1;
+            argsRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            argsRowTableLayout.Size = new System.Drawing.Size(764, 51);
+            argsRowTableLayout.TabIndex = 1;
             // 
             // lblApplicationArgs
             // 
-            this.lblApplicationArgs.AutoSize = true;
-            this.lblApplicationArgs.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblApplicationArgs.Location = new System.Drawing.Point(3, 3);
-            this.lblApplicationArgs.Margin = new System.Windows.Forms.Padding(3);
-            this.lblApplicationArgs.Name = "lblApplicationArgs";
-            this.lblApplicationArgs.Size = new System.Drawing.Size(154, 32);
-            this.lblApplicationArgs.TabIndex = 8;
-            this.lblApplicationArgs.Text = "Args:";
-            this.lblApplicationArgs.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            lblApplicationArgs.AutoSize = true;
+            lblApplicationArgs.Dock = System.Windows.Forms.DockStyle.Top;
+            lblApplicationArgs.Location = new System.Drawing.Point(3, 3);
+            lblApplicationArgs.Margin = new System.Windows.Forms.Padding(3);
+            lblApplicationArgs.Name = "lblApplicationArgs";
+            lblApplicationArgs.Size = new System.Drawing.Size(154, 32);
+            lblApplicationArgs.TabIndex = 8;
+            lblApplicationArgs.Text = "Args:";
+            lblApplicationArgs.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // txtApplicationArgs
             // 
-            this.txtApplicationArgs.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.recorderProjectBindingSource, "Arguments", true));
-            this.txtApplicationArgs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtApplicationArgs.Location = new System.Drawing.Point(163, 3);
-            this.txtApplicationArgs.Name = "txtApplicationArgs";
-            this.txtApplicationArgs.Size = new System.Drawing.Size(598, 39);
-            this.txtApplicationArgs.TabIndex = 5;
+            txtApplicationArgs.DataBindings.Add(new System.Windows.Forms.Binding("Text", recorderProjectBindingSource, "Arguments", true));
+            txtApplicationArgs.Dock = System.Windows.Forms.DockStyle.Fill;
+            txtApplicationArgs.Location = new System.Drawing.Point(163, 3);
+            txtApplicationArgs.Name = "txtApplicationArgs";
+            txtApplicationArgs.Size = new System.Drawing.Size(598, 39);
+            txtApplicationArgs.TabIndex = 5;
             // 
             // processRowTableLayout
             // 
-            this.processRowTableLayout.ColumnCount = 3;
-            this.processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
-            this.processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            this.processRowTableLayout.Controls.Add(this.rdbApplicationProcess, 0, 0);
-            this.processRowTableLayout.Controls.Add(this.cboApplicationProcess, 1, 0);
-            this.processRowTableLayout.Controls.Add(this.btnProcessRefresh, 2, 0);
-            this.processRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.processRowTableLayout.Location = new System.Drawing.Point(3, 123);
-            this.processRowTableLayout.Name = "processRowTableLayout";
-            this.processRowTableLayout.RowCount = 1;
-            this.processRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.processRowTableLayout.Size = new System.Drawing.Size(764, 89);
-            this.processRowTableLayout.TabIndex = 2;
+            processRowTableLayout.ColumnCount = 3;
+            processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 160F));
+            processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            processRowTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            processRowTableLayout.Controls.Add(rdbApplicationProcess, 0, 0);
+            processRowTableLayout.Controls.Add(cboApplicationProcess, 1, 0);
+            processRowTableLayout.Controls.Add(btnProcessRefresh, 2, 0);
+            processRowTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            processRowTableLayout.Location = new System.Drawing.Point(3, 123);
+            processRowTableLayout.Name = "processRowTableLayout";
+            processRowTableLayout.RowCount = 1;
+            processRowTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            processRowTableLayout.Size = new System.Drawing.Size(764, 89);
+            processRowTableLayout.TabIndex = 2;
             // 
             // rdbApplicationProcess
             // 
-            this.rdbApplicationProcess.AutoSize = true;
-            this.rdbApplicationProcess.Dock = System.Windows.Forms.DockStyle.Top;
-            this.rdbApplicationProcess.Location = new System.Drawing.Point(3, 3);
-            this.rdbApplicationProcess.Name = "rdbApplicationProcess";
-            this.rdbApplicationProcess.Size = new System.Drawing.Size(154, 36);
-            this.rdbApplicationProcess.TabIndex = 3;
-            this.rdbApplicationProcess.Text = "Process:";
-            this.rdbApplicationProcess.UseVisualStyleBackColor = true;
+            rdbApplicationProcess.AutoSize = true;
+            rdbApplicationProcess.Dock = System.Windows.Forms.DockStyle.Top;
+            rdbApplicationProcess.Location = new System.Drawing.Point(3, 3);
+            rdbApplicationProcess.Name = "rdbApplicationProcess";
+            rdbApplicationProcess.Size = new System.Drawing.Size(154, 36);
+            rdbApplicationProcess.TabIndex = 3;
+            rdbApplicationProcess.Text = "Process:";
+            rdbApplicationProcess.UseVisualStyleBackColor = true;
             // 
             // cboApplicationProcess
             // 
-            this.cboApplicationProcess.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cboApplicationProcess.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboApplicationProcess.FormattingEnabled = true;
-            this.cboApplicationProcess.Location = new System.Drawing.Point(163, 3);
-            this.cboApplicationProcess.Name = "cboApplicationProcess";
-            this.cboApplicationProcess.Size = new System.Drawing.Size(558, 40);
-            this.cboApplicationProcess.TabIndex = 6;
-            this.cboApplicationProcess.SelectedIndexChanged += new System.EventHandler(this.radioButton_CheckedChanged_UpdateDirty);
-            this.cboApplicationProcess.Format += new System.Windows.Forms.ListControlConvertEventHandler(this.cboApplicationProcess_Format);
+            cboApplicationProcess.Dock = System.Windows.Forms.DockStyle.Fill;
+            cboApplicationProcess.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cboApplicationProcess.FormattingEnabled = true;
+            cboApplicationProcess.Location = new System.Drawing.Point(163, 3);
+            cboApplicationProcess.Name = "cboApplicationProcess";
+            cboApplicationProcess.Size = new System.Drawing.Size(558, 40);
+            cboApplicationProcess.TabIndex = 6;
+            cboApplicationProcess.SelectedIndexChanged += radioButton_CheckedChanged_UpdateDirty;
+            cboApplicationProcess.Format += cboApplicationProcess_Format;
             // 
             // btnProcessRefresh
             // 
-            this.btnProcessRefresh.AutoSize = true;
-            this.btnProcessRefresh.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnProcessRefresh.Image = ((System.Drawing.Image)(resources.GetObject("btnProcessRefresh.Image")));
-            this.btnProcessRefresh.Location = new System.Drawing.Point(727, 3);
-            this.btnProcessRefresh.Name = "btnProcessRefresh";
-            this.btnProcessRefresh.Size = new System.Drawing.Size(34, 40);
-            this.btnProcessRefresh.TabIndex = 7;
-            this.btnProcessRefresh.UseVisualStyleBackColor = true;
-            this.btnProcessRefresh.Click += new System.EventHandler(this.btnProcessRefresh_Click);
+            btnProcessRefresh.AutoSize = true;
+            btnProcessRefresh.Dock = System.Windows.Forms.DockStyle.Top;
+            btnProcessRefresh.Image = (System.Drawing.Image)resources.GetObject("btnProcessRefresh.Image");
+            btnProcessRefresh.Location = new System.Drawing.Point(727, 3);
+            btnProcessRefresh.Name = "btnProcessRefresh";
+            btnProcessRefresh.Size = new System.Drawing.Size(34, 40);
+            btnProcessRefresh.TabIndex = 7;
+            btnProcessRefresh.UseVisualStyleBackColor = true;
+            btnProcessRefresh.Click += btnProcessRefresh_Click;
             // 
             // openApplicationDialog
             // 
-            this.openApplicationDialog.FileName = "*.exe";
-            this.openApplicationDialog.Filter = "Applications (*.exe)|*.exe";
-            this.openApplicationDialog.Title = "Choose target application";
+            openApplicationDialog.FileName = "*.exe";
+            openApplicationDialog.Filter = "Applications (*.exe)|*.exe";
+            openApplicationDialog.Title = "Choose target application";
             // 
             // openProjectDialog
             // 
-            this.openProjectDialog.FileName = "*.urp";
-            this.openProjectDialog.Filter = "FlaUI Recorder projects (*.urp)|*.urp";
-            this.openProjectDialog.Title = "Open an existing project";
+            openProjectDialog.FileName = "*.urp";
+            openProjectDialog.Filter = "FlaUI Recorder projects (*.urp)|*.urp";
+            openProjectDialog.Title = "Open an existing project";
             // 
             // saveProjectDialog
             // 
-            this.saveProjectDialog.DefaultExt = "*.urp";
-            this.saveProjectDialog.Filter = "FlaUI Recorder projects (*.urp)|*.urp";
-            this.saveProjectDialog.Title = "Save recorder project";
+            saveProjectDialog.DefaultExt = "*.urp";
+            saveProjectDialog.Filter = "FlaUI Recorder projects (*.urp)|*.urp";
+            saveProjectDialog.Title = "Save recorder project";
             // 
             // lstSessions
             // 
-            this.lstSessions.DataSource = this.sessionsBindingSource;
-            this.lstSessions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lstSessions.FormattingEnabled = true;
-            this.lstSessions.IntegralHeight = false;
-            this.lstSessions.ItemHeight = 32;
-            this.lstSessions.Location = new System.Drawing.Point(3, 38);
-            this.lstSessions.Name = "lstSessions";
-            this.lstSessions.Size = new System.Drawing.Size(520, 453);
-            this.lstSessions.TabIndex = 6;
-            this.lstSessions.DoubleClick += new System.EventHandler(this.lstSessions_DoubleClick);
+            lstSessions.DataSource = sessionsBindingSource;
+            lstSessions.Dock = System.Windows.Forms.DockStyle.Fill;
+            lstSessions.FormattingEnabled = true;
+            lstSessions.IntegralHeight = false;
+            lstSessions.ItemHeight = 32;
+            lstSessions.Location = new System.Drawing.Point(3, 38);
+            lstSessions.Name = "lstSessions";
+            lstSessions.Size = new System.Drawing.Size(520, 453);
+            lstSessions.TabIndex = 6;
+            lstSessions.DoubleClick += lstSessions_DoubleClick;
             // 
             // sessionsBindingSource
             // 
-            this.sessionsBindingSource.DataMember = "Sessions";
-            this.sessionsBindingSource.DataSource = this.recorderProjectBindingSource;
+            sessionsBindingSource.DataMember = "Sessions";
+            sessionsBindingSource.DataSource = recorderProjectBindingSource;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label1.Location = new System.Drawing.Point(3, 0);
-            this.label1.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(520, 32);
-            this.label1.TabIndex = 7;
-            this.label1.Text = "Recorded sessions";
+            label1.AutoSize = true;
+            label1.Dock = System.Windows.Forms.DockStyle.Fill;
+            label1.Location = new System.Drawing.Point(3, 0);
+            label1.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(520, 32);
+            label1.TabIndex = 7;
+            label1.Text = "Recorded sessions";
             // 
             // mainTableLayout
             // 
-            this.mainTableLayout.ColumnCount = 2;
-            this.mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
-            this.mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40F));
-            this.mainTableLayout.Controls.Add(this.leftTableLayout, 0, 0);
-            this.mainTableLayout.Controls.Add(this.rightTableLayout, 1, 0);
-            this.mainTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainTableLayout.Location = new System.Drawing.Point(8, 47);
-            this.mainTableLayout.Name = "mainTableLayout";
-            this.mainTableLayout.Padding = new System.Windows.Forms.Padding(8);
-            this.mainTableLayout.RowCount = 1;
-            this.mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.mainTableLayout.Size = new System.Drawing.Size(1346, 516);
-            this.mainTableLayout.TabIndex = 8;
+            mainTableLayout.ColumnCount = 2;
+            mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
+            mainTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40F));
+            mainTableLayout.Controls.Add(leftTableLayout, 0, 0);
+            mainTableLayout.Controls.Add(rightTableLayout, 1, 0);
+            mainTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            mainTableLayout.Location = new System.Drawing.Point(8, 47);
+            mainTableLayout.Name = "mainTableLayout";
+            mainTableLayout.Padding = new System.Windows.Forms.Padding(8);
+            mainTableLayout.RowCount = 1;
+            mainTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            mainTableLayout.Size = new System.Drawing.Size(1346, 516);
+            mainTableLayout.TabIndex = 8;
             // 
             // leftTableLayout
             // 
-            this.leftTableLayout.BackColor = System.Drawing.Color.Transparent;
-            this.leftTableLayout.ColumnCount = 1;
-            this.leftTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.leftTableLayout.Controls.Add(this.topSettingsTableLayout, 0, 0);
-            this.leftTableLayout.Controls.Add(this.groupBox3, 0, 1);
-            this.leftTableLayout.Controls.Add(this.startPanel, 0, 2);
-            this.leftTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.leftTableLayout.Location = new System.Drawing.Point(11, 11);
-            this.leftTableLayout.Name = "leftTableLayout";
-            this.leftTableLayout.RowCount = 3;
-            this.leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 160F));
-            this.leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.leftTableLayout.Size = new System.Drawing.Size(792, 494);
-            this.leftTableLayout.TabIndex = 0;
+            leftTableLayout.BackColor = System.Drawing.Color.Transparent;
+            leftTableLayout.ColumnCount = 1;
+            leftTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            leftTableLayout.Controls.Add(topSettingsTableLayout, 0, 0);
+            leftTableLayout.Controls.Add(groupBox3, 0, 1);
+            leftTableLayout.Controls.Add(startPanel, 0, 2);
+            leftTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            leftTableLayout.Location = new System.Drawing.Point(11, 11);
+            leftTableLayout.Name = "leftTableLayout";
+            leftTableLayout.RowCount = 3;
+            leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 160F));
+            leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            leftTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            leftTableLayout.Size = new System.Drawing.Size(792, 494);
+            leftTableLayout.TabIndex = 0;
             // 
             // topSettingsTableLayout
             // 
-            this.topSettingsTableLayout.ColumnCount = 2;
-            this.topSettingsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 280F));
-            this.topSettingsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.topSettingsTableLayout.Controls.Add(this.groupBox1, 0, 0);
-            this.topSettingsTableLayout.Controls.Add(this.groupBox2, 1, 0);
-            this.topSettingsTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.topSettingsTableLayout.Location = new System.Drawing.Point(3, 3);
-            this.topSettingsTableLayout.Name = "topSettingsTableLayout";
-            this.topSettingsTableLayout.RowCount = 1;
-            this.topSettingsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.topSettingsTableLayout.Size = new System.Drawing.Size(786, 154);
-            this.topSettingsTableLayout.TabIndex = 0;
+            topSettingsTableLayout.ColumnCount = 2;
+            topSettingsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 280F));
+            topSettingsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            topSettingsTableLayout.Controls.Add(groupBox1, 0, 0);
+            topSettingsTableLayout.Controls.Add(groupBox2, 1, 0);
+            topSettingsTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            topSettingsTableLayout.Location = new System.Drawing.Point(3, 3);
+            topSettingsTableLayout.Name = "topSettingsTableLayout";
+            topSettingsTableLayout.RowCount = 1;
+            topSettingsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            topSettingsTableLayout.Size = new System.Drawing.Size(786, 154);
+            topSettingsTableLayout.TabIndex = 0;
             // 
             // startPanel
             // 
-            this.startPanel.AutoSize = true;
-            this.startPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.startPanel.Controls.Add(this.btnStart);
-            this.startPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.startPanel.Location = new System.Drawing.Point(3, 438);
-            this.startPanel.Name = "startPanel";
-            this.startPanel.Size = new System.Drawing.Size(786, 53);
-            this.startPanel.TabIndex = 1;
+            startPanel.AutoSize = true;
+            startPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            startPanel.Controls.Add(btnStart);
+            startPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            startPanel.Location = new System.Drawing.Point(3, 438);
+            startPanel.Name = "startPanel";
+            startPanel.Size = new System.Drawing.Size(786, 53);
+            startPanel.TabIndex = 1;
             // 
             // rightTableLayout
             // 
-            this.rightTableLayout.ColumnCount = 1;
-            this.rightTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.rightTableLayout.Controls.Add(this.label1, 0, 0);
-            this.rightTableLayout.Controls.Add(this.lstSessions, 0, 1);
-            this.rightTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rightTableLayout.Location = new System.Drawing.Point(809, 11);
-            this.rightTableLayout.Name = "rightTableLayout";
-            this.rightTableLayout.RowCount = 2;
-            this.rightTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.rightTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.rightTableLayout.Size = new System.Drawing.Size(526, 494);
-            this.rightTableLayout.TabIndex = 1;
+            rightTableLayout.ColumnCount = 1;
+            rightTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            rightTableLayout.Controls.Add(label1, 0, 0);
+            rightTableLayout.Controls.Add(lstSessions, 0, 1);
+            rightTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            rightTableLayout.Location = new System.Drawing.Point(809, 11);
+            rightTableLayout.Name = "rightTableLayout";
+            rightTableLayout.RowCount = 2;
+            rightTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            rightTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            rightTableLayout.Size = new System.Drawing.Size(526, 494);
+            rightTableLayout.TabIndex = 1;
             // 
             // statusStrip1
             // 
-            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.statusLabelReady,
-            this.statusLabelErrors});
-            this.statusStrip1.Location = new System.Drawing.Point(8, 563);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1346, 41);
-            this.statusStrip1.TabIndex = 9;
-            this.statusStrip1.Text = "statusStrip1";
+            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { statusLabelReady, statusLabelErrors });
+            statusStrip1.Location = new System.Drawing.Point(8, 563);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new System.Drawing.Size(1346, 41);
+            statusStrip1.TabIndex = 9;
+            statusStrip1.Text = "statusStrip1";
             // 
             // statusLabelReady
             // 
-            this.statusLabelReady.Name = "statusLabelReady";
-            this.statusLabelReady.Size = new System.Drawing.Size(1224, 31);
-            this.statusLabelReady.Spring = true;
-            this.statusLabelReady.Text = "Ready";
-            this.statusLabelReady.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            statusLabelReady.Name = "statusLabelReady";
+            statusLabelReady.Size = new System.Drawing.Size(1224, 31);
+            statusLabelReady.Spring = true;
+            statusLabelReady.Text = "Ready";
+            statusLabelReady.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // statusLabelErrors
             // 
-            this.statusLabelErrors.IsLink = true;
-            this.statusLabelErrors.Name = "statusLabelErrors";
-            this.statusLabelErrors.Size = new System.Drawing.Size(107, 31);
-            this.statusLabelErrors.Text = "Errors: 0";
-            this.statusLabelErrors.Click += new System.EventHandler(this.ErrorStatusLabel_Click);
+            statusLabelErrors.IsLink = true;
+            statusLabelErrors.Name = "statusLabelErrors";
+            statusLabelErrors.Size = new System.Drawing.Size(107, 31);
+            statusLabelErrors.Text = "Errors: 0";
+            statusLabelErrors.Click += ErrorStatusLabel_Click;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1362, 612);
-            this.Controls.Add(this.mainTableLayout);
-            this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.menuStrip1);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(900, 520);
-            this.Name = "MainForm";
-            this.Padding = new System.Windows.Forms.Padding(8);
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "FlaUI - Recorder";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.uiaTableLayout.ResumeLayout(false);
-            this.uiaTableLayout.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.recorderProjectBindingSource)).EndInit();
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.targetAppTableLayout.ResumeLayout(false);
-            this.pathRowTableLayout.ResumeLayout(false);
-            this.pathRowTableLayout.PerformLayout();
-            this.argsRowTableLayout.ResumeLayout(false);
-            this.argsRowTableLayout.PerformLayout();
-            this.processRowTableLayout.ResumeLayout(false);
-            this.processRowTableLayout.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sessionsBindingSource)).EndInit();
-            this.mainTableLayout.ResumeLayout(false);
-            this.leftTableLayout.ResumeLayout(false);
-            this.leftTableLayout.PerformLayout();
-            this.topSettingsTableLayout.ResumeLayout(false);
-            this.startPanel.ResumeLayout(false);
-            this.startPanel.PerformLayout();
-            this.rightTableLayout.ResumeLayout(false);
-            this.rightTableLayout.PerformLayout();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(1362, 612);
+            Controls.Add(mainTableLayout);
+            Controls.Add(statusStrip1);
+            Controls.Add(menuStrip1);
+            Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            MainMenuStrip = menuStrip1;
+            MinimumSize = new System.Drawing.Size(900, 520);
+            Name = "MainForm";
+            Padding = new System.Windows.Forms.Padding(8);
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            Text = "FlaUI - Recorder";
+            FormClosing += MainForm_FormClosing;
+            Load += MainForm_Load;
+            groupBox1.ResumeLayout(false);
+            uiaTableLayout.ResumeLayout(false);
+            uiaTableLayout.PerformLayout();
+            groupBox2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)recorderProjectBindingSource).EndInit();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            groupBox3.ResumeLayout(false);
+            targetAppTableLayout.ResumeLayout(false);
+            pathRowTableLayout.ResumeLayout(false);
+            pathRowTableLayout.PerformLayout();
+            argsRowTableLayout.ResumeLayout(false);
+            argsRowTableLayout.PerformLayout();
+            processRowTableLayout.ResumeLayout(false);
+            processRowTableLayout.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)sessionsBindingSource).EndInit();
+            mainTableLayout.ResumeLayout(false);
+            leftTableLayout.ResumeLayout(false);
+            leftTableLayout.PerformLayout();
+            topSettingsTableLayout.ResumeLayout(false);
+            startPanel.ResumeLayout(false);
+            startPanel.PerformLayout();
+            rightTableLayout.ResumeLayout(false);
+            rightTableLayout.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 

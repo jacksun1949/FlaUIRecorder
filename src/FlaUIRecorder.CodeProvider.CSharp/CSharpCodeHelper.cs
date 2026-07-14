@@ -56,7 +56,11 @@ namespace FlaUIRecorder.CodeProvider.CSharp
             if (string.IsNullOrEmpty(value))
                 return string.Empty;
 
-            return Regex.Replace(value, "[^a-zA-Z0-9_]", string.Empty);
+            var sanitized = Regex.Replace(value, "[^a-zA-Z0-9_]", string.Empty);
+            if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
+                sanitized = "_" + sanitized;
+
+            return sanitized;
         }
 
         private static string GetControlTypeName(AutomationElement element)

@@ -183,7 +183,8 @@ namespace FlaUIRecorder
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Loading project failed.\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                RecorderErrorLog.RecordError(ex, $"MainForm.LoadProject({fileName})");
+                MessageBox.Show($"Loading project failed.\r\nFile: {fileName}\r\n\r\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -237,7 +238,8 @@ namespace FlaUIRecorder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                RecorderErrorLog.RecordError(ex, $"MainForm.SaveProject({fileName})");
+                MessageBox.Show($"Saving project failed.\r\nFile: {fileName}\r\n\r\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             return false;
@@ -394,7 +396,10 @@ namespace FlaUIRecorder
                 return;
             }
 
-            MessageBox.Show(this, string.Join(Environment.NewLine, RecorderErrorLog.Errors), "Error Log", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            var lines = string.Join(Environment.NewLine, RecorderErrorLog.Errors);
+            var fullMessage = $"{lines}{Environment.NewLine}{Environment.NewLine}Full details (stack traces) are logged to:{Environment.NewLine}{RecorderErrorLog.LogFilePath}";
+
+            MessageBox.Show(this, fullMessage, $"Error Log ({RecorderErrorLog.Count} entries)", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void InitializeMru()
@@ -488,7 +493,7 @@ namespace FlaUIRecorder
             if (_currentProject.IsDirty)
             {
                 var dialogResult = MessageBox.Show("The current project contains unsaved changes. Do you want to save these changes?", "Unsaved changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
-                if (dialogResult == DialogResult.OK)
+                if (dialogResult == DialogResult.Yes)
                 {
                     if (!SaveProject())
                         return false;
@@ -611,7 +616,8 @@ namespace FlaUIRecorder
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(this, "Export failed.\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    RecorderErrorLog.RecordError(ex, $"MainForm.ExportProject({exportDir})");
+                    MessageBox.Show(this, $"Export failed.\r\nFolder: {exportDir}\r\n\r\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

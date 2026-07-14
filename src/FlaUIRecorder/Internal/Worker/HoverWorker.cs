@@ -345,34 +345,45 @@ namespace FlaUIRecorder.Internal.Worker
 
 
 
+        private const int IsTargetTimeoutMs = 2000;
+
         private bool IsTargetElement(AutomationElement element)
-
         {
-
             if (element == null)
-
                 return false;
 
+            // UIA ProcessId access is a synchronous COM call that can block indefinitely
+            // if the target process is frozen/hung. Use a timeout to prevent deadlocks.
+            var processId = 0;
+            Exception capturedException = null;
 
-
-            try
-
+            var task = System.Threading.Tasks.Task.Run(() =>
             {
+                try
+                {
+                    processId = element.Properties.ProcessId;
+                }
+                catch (Exception ex)
+                {
+                    capturedException = ex;
+                }
+            });
 
-                return element.Properties.ProcessId == _targetProcessId;
-
-            }
-
-            catch (Exception ex)
-
+            if (!task.Wait(IsTargetTimeoutMs))
             {
-
-                RecorderErrorLog.RecordError(ex, "HoverWorker.IsTargetElement");
-
+                RecorderErrorLog.RecordError(
+                    new TimeoutException($"HoverWorker.IsTargetElement timed out after {IsTargetTimeoutMs}ms"),
+                    "HoverWorker.IsTargetElement");
                 return false;
-
             }
 
+            if (capturedException != null)
+            {
+                RecorderErrorLog.RecordError(capturedException, "HoverWorker.IsTargetElement");
+                return false;
+            }
+
+            return processId == _targetProcessId;
         }
 
 

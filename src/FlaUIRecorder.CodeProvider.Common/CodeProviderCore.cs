@@ -54,8 +54,19 @@ namespace FlaUIRecorder.CodeProvider.Common
             var visited = new HashSet<AutomationElement>();
             while (obj != null)
             {
-                if (visited.Contains(obj) || pathToRoot.Contains(obj) || obj.Equals(RootElement))
+                if (visited.Contains(obj) || pathToRoot.Contains(obj))
                     break;
+
+                try
+                {
+                    if (obj.Equals(RootElement))
+                        break;
+                }
+                catch
+                {
+                    // Element disconnected; stop traversal.
+                    break;
+                }
 
                 visited.Add(obj);
                 pathToRoot.Add(obj);
@@ -104,8 +115,18 @@ namespace FlaUIRecorder.CodeProvider.Common
             if (IsMainWindow(parent))
                 return mainWindow;
 
-            if (RootElement != null && parent.Equals(RootElement) && mainWindow != null)
-                return mainWindow;
+            if (RootElement != null && mainWindow != null)
+            {
+                try
+                {
+                    if (parent.Equals(RootElement))
+                        return mainWindow;
+                }
+                catch
+                {
+                    // Element may be disconnected during comparison.
+                }
+            }
 
             if (mainWindow != null && !BelongsToTargetProcess(parent))
                 return mainWindow;
@@ -217,7 +238,11 @@ namespace FlaUIRecorder.CodeProvider.Common
             if (string.IsNullOrEmpty(value))
                 return string.Empty;
 
-            return Regex.Replace(value, "[^a-zA-Z0-9_]", string.Empty);
+            var sanitized = Regex.Replace(value, "[^a-zA-Z0-9_]", string.Empty);
+            if (sanitized.Length > 0 && char.IsDigit(sanitized[0]))
+                sanitized = "_" + sanitized;
+
+            return sanitized;
         }
 
         protected static string GetElementLabel(AutomationElement element)

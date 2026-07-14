@@ -105,7 +105,7 @@ namespace FlaUIRecorder.CodeProvider.Common
                 parts.Add($"cf.ByName(\"{EscapeString(selector.Name)}\")");
 
             if (parts.Count == 0)
-                return "cf => cf.True()";
+                return "cf.True()";
 
             var result = new StringBuilder(parts[0]);
             for (var i = 1; i < parts.Count; i++)

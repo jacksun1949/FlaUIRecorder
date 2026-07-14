@@ -1,4 +1,3 @@
-using EventHook;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
@@ -38,6 +37,7 @@ namespace FlaUIRecorder.Internal.Worker
         private readonly StringBuilder _textBuffer = new StringBuilder();
         private readonly HashSet<string> _activeModifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HookHealthMonitor _healthMonitor;
+        private readonly LowLevelKeyboardHook _keyboardHook;
         private AutomationElement _textTarget;
 
         public event EventHandler<KeyboardActionEventArgs> TextInputCompleted;
@@ -51,27 +51,28 @@ namespace FlaUIRecorder.Internal.Worker
             _targetProcessId = targetProcessId;
             _healthMonitor = new HookHealthMonitor("Keyboard");
             _healthMonitor.StatusChanged += (s, msg) => StatusChanged?.Invoke(this, msg);
-            KeyboardWatcher.OnKeyInput += KeyboardWatcher_OnKeyInput;
+            _keyboardHook = new LowLevelKeyboardHook();
+            _keyboardHook.KeyEvent += KeyboardHook_OnKeyEvent;
         }
 
         public void Dispose()
         {
             Pause();
             _healthMonitor.Dispose();
-            KeyboardWatcher.OnKeyInput -= KeyboardWatcher_OnKeyInput;
+            _keyboardHook.Dispose();
         }
 
         public void Start()
         {
             try
             {
-                KeyboardWatcher.Start();
+                _keyboardHook.Start();
                 _healthMonitor.Start();
                 StatusChanged?.Invoke(this, "Keyboard hook started");
             }
             catch (Exception ex)
             {
-                RecorderErrorLog.RecordError(ex, "KeyboardWatcher.Start");
+                RecorderErrorLog.RecordError(ex, "LowLevelKeyboardHook.Start");
                 StatusChanged?.Invoke(this, "Keyboard hook failed to start");
             }
         }
@@ -82,29 +83,29 @@ namespace FlaUIRecorder.Internal.Worker
             _activeModifiers.Clear();
             try
             {
-                KeyboardWatcher.Stop();
+                _keyboardHook.Stop();
             }
             catch (Exception ex)
             {
-                RecorderErrorLog.RecordError(ex, "KeyboardWatcher.Stop");
+                RecorderErrorLog.RecordError(ex, "LowLevelKeyboardHook.Stop");
             }
             _healthMonitor.Stop();
         }
 
-        private void KeyboardWatcher_OnKeyInput(object sender, KeyInputEventArgs e)
+        private void KeyboardHook_OnKeyEvent(KeyEventData e)
         {
             try
             {
                 _healthMonitor.RecordEvent();
 
-                if (e?.KeyData == null)
+                if (e?.KeyName == null)
                     return;
 
-                var keyName = e.KeyData.Keyname?.ToUpperInvariant() ?? string.Empty;
+                var keyName = e.KeyName.ToUpperInvariant();
                 if (string.IsNullOrEmpty(keyName))
                     return;
 
-                if (e.KeyData.EventType == KeyEvent.down)
+                if (e.EventType == KeyEventType.Down)
                 {
                     if (IsModifierKey(keyName))
                     {
@@ -141,7 +142,7 @@ namespace FlaUIRecorder.Internal.Worker
                         _textBuffer.Append(keyName);
                     }
                 }
-                else if (e.KeyData.EventType == KeyEvent.up)
+                else if (e.EventType == KeyEventType.Up)
                 {
                     if (IsModifierKey(keyName))
                         _activeModifiers.Remove(NormalizeModifier(keyName));
@@ -232,7 +233,10 @@ namespace FlaUIRecorder.Internal.Worker
                 if (textBox != null && !string.IsNullOrEmpty(textBox.Text))
                     return textBox.Text;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                RecorderErrorLog.RecordError(ex, "KeyboardWorker.TryReadElementText");
+            }
 
             return null;
         }
@@ -279,19 +283,45 @@ namespace FlaUIRecorder.Internal.Worker
             return false;
         }
 
+        private const int IsTargetTimeoutMs = 2000;
+
         private bool IsTargetElement(AutomationElement element)
         {
             if (element == null)
                 return false;
 
-            try
+            // UIA ProcessId access is a synchronous COM call that can block indefinitely
+            // if the target process is frozen/hung. Use a timeout to prevent deadlocks.
+            var processId = 0;
+            Exception capturedException = null;
+
+            var task = System.Threading.Tasks.Task.Run(() =>
             {
-                return element.Properties.ProcessId == _targetProcessId;
-            }
-            catch
+                try
+                {
+                    processId = element.Properties.ProcessId;
+                }
+                catch (Exception ex)
+                {
+                    capturedException = ex;
+                }
+            });
+
+            if (!task.Wait(IsTargetTimeoutMs))
             {
+                RecorderErrorLog.RecordError(
+                    new TimeoutException($"KeyboardWorker.IsTargetElement timed out after {IsTargetTimeoutMs}ms"),
+                    "KeyboardWorker.IsTargetElement");
                 return false;
             }
+
+            if (capturedException != null)
+            {
+                RecorderErrorLog.RecordError(capturedException, "KeyboardWorker.IsTargetElement");
+                return false;
+            }
+
+            return processId == _targetProcessId;
         }
 
         private static string MapVirtualKey(string keyName)

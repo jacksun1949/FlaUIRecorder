@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputType>WinExe</OutputType>
     <AssemblyName>FlaUIRecorder</AssemblyName>
@@ -10,11 +10,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EventHook" Version="1.4.39" />
     <PackageReference Include="FlaUI.Core" Version="5.0.0" />
     <PackageReference Include="FlaUI.UIA2" Version="5.0.0" />
     <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
-    <PackageReference Include="System.Management" Version="8.0.0" />
+
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlaUIRecorder.CodeProvider.Common\FlaUIRecorder.CodeProvider.Common.csproj" />

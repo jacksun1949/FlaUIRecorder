@@ -58,6 +58,8 @@ namespace FlaUIRecorder.CodeProvider.CSharp.Tests
         {
             CSharpCodeHelper.SanitizeIdentifier("btn-Save_1").Should().Be("btnSave_1");
             CSharpCodeHelper.SanitizeIdentifier("").Should().BeEmpty();
+            CSharpCodeHelper.SanitizeIdentifier("123").Should().Be("_123");
+            CSharpCodeHelper.SanitizeIdentifier("1abc").Should().Be("_1abc");
         }
 
         [Test]

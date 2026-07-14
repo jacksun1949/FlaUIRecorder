@@ -256,6 +256,7 @@ namespace FlaUIRecorder
 
         private void btnGenerate_Click(object sender, EventArgs e)
         {
+            _recorder.Pause(); // Stop hooks immediately to prevent re-entrant callbacks
             _mainForm.Finished(_recorder.GenerateCode());
         }
 

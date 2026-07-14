@@ -18,10 +18,40 @@ namespace FlaUIRecorder
         private const string RetryFindComment = CodeProviderCore.RetryFindComment;
 
         private const string LaunchOrAttachHelper = @"
+        [System.Runtime.InteropServices.DllImport(""user32.dll"")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+        const int SW_RESTORE = 9;
+
+        static void BringToFront(Process p)
+        {
+            try
+            {
+                var hWnd = p.MainWindowHandle;
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_RESTORE);
+                    SetForegroundWindow(hWnd);
+                }
+            }
+            catch { }
+        }
+
         static Application LaunchOrAttach(string exePath, string arguments = """")
         {
-            // Launch may start a short-lived launcher (common for Electron/Tauri single-instance apps).
-            // Never return that Application — always attach to a live process with a main window.
+            var processName = Path.GetFileNameWithoutExtension(exePath);
+
+            // First, try to find an already-running process and attach to it.
+            var target = FindTargetProcess(processName);
+            if (target != null)
+            {
+                var app = Application.Attach(target);
+                BringToFront(target);
+                return app;
+            }
+
+            // Not running — launch it and wait for a process with a main window.
+            // (Launch may start a short-lived launcher; never return that.
+            //  Always wait for a live process with a main window.)
             try
             {
                 if (string.IsNullOrWhiteSpace(arguments))
@@ -31,8 +61,6 @@ namespace FlaUIRecorder
             }
             catch { }
 
-            var processName = Path.GetFileNameWithoutExtension(exePath);
-            Process target = null;
             FlaUI.Core.Tools.Retry.While(
                 () =>
                 {
@@ -192,7 +220,7 @@ namespace FlaUIRecorder
         }
     }";
 
-        // Upgrade path: the recorder runs on FlaUI 5.0 / net8.0-windows.
+        // Upgrade path: the recorder runs on FlaUI 5.0 / net7.0-windows.
         // Exported projects default to the same version, with optional legacy 4.0 target.
 
         public static string Export(RecorderProject project, string exportDir, string projectName, ExportOptions options = null)
@@ -236,7 +264,7 @@ namespace FlaUIRecorder
                 ? $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework}. Legacy target; review API differences from 5.0. -->"
                 : $"<!-- Exported for FlaUI {flaUIVersion} on {targetFramework}. -->";
 
-            var windowsFormsEntry = targetFramework.StartsWith("net8") ? "    <UseWindowsForms>true</UseWindowsForms>\n" : "";
+            var windowsFormsEntry = targetFramework.StartsWith("net7") ? "    <UseWindowsForms>true</UseWindowsForms>\n" : "";
 
             var csproj = $@"{upgradeComment}
 <Project Sdk=""Microsoft.NET.Sdk"">
@@ -255,10 +283,23 @@ namespace FlaUIRecorder
             return exportDir;
         }
 
-        private const string DpiAwarenessInit = @"
+        private const string NativeImports = @"
         [System.Runtime.InteropServices.DllImport(""user32.dll"")]
         static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
-        static readonly IntPtr DPI_AWARE_PER_MONITOR_V2 = new IntPtr(-4);";
+        static readonly IntPtr DPI_AWARE_PER_MONITOR_V2 = new IntPtr(-4);
+
+        [System.Runtime.InteropServices.DllImport(""kernel32.dll"")]
+        static extern IntPtr GetConsoleWindow();
+        [System.Runtime.InteropServices.DllImport(""user32.dll"")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        const int SW_MINIMIZE = 6;
+
+        static void HideConsole()
+        {{
+            var hWnd = GetConsoleWindow();
+            if (hWnd != IntPtr.Zero)
+                ShowWindow(hWnd, SW_MINIMIZE);
+        }}";
 
         private static string BuildStandardProgram(string automationNs, string automationType, string executable, string launchArguments)
         {
@@ -276,9 +317,10 @@ namespace RecordedAutomation
     class Program
     {{
 {LaunchOrAttachHelper}
-{DpiAwarenessInit}
+{NativeImports}
         static void Main()
         {{
+            HideConsole();
             try {{ SetProcessDpiAwarenessContext(DPI_AWARE_PER_MONITOR_V2); }} catch {{ }}
             using (var app = LaunchOrAttach(@""{executable}""{launchArguments}))
             using (var automation = new {automationType}())
@@ -307,9 +349,10 @@ namespace RecordedAutomation
     class Program
     {{
 {LaunchOrAttachHelper}
-{DpiAwarenessInit}
+{NativeImports}
         static void Main()
         {{
+            HideConsole();
             try {{ SetProcessDpiAwarenessContext(DPI_AWARE_PER_MONITOR_V2); }} catch {{ }}
             using (var app = LaunchOrAttach(@""{executable}""{launchArguments}))
             using (var automation = new {automationType}())
@@ -371,6 +414,7 @@ namespace RecordedAutomation
             var sb = new StringBuilder();
             sb.AppendLine("using FlaUI.Core;");
             sb.AppendLine("using FlaUI.Core.AutomationElements;");
+            sb.AppendLine("using FlaUI.Core.Conditions;");
             sb.AppendLine("using FlaUI.Core.Definitions;");
             sb.AppendLine("using FlaUI.Core.Input;");
             sb.AppendLine("using System;");

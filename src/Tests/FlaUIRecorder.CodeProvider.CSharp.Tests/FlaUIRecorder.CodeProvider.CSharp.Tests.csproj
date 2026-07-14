@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <RootNamespace>FlaUIRecorder.CodeProvider.CSharp.Tests</RootNamespace>
     <AssemblyName>FlaUIRecorder.CodeProvider.CSharp.Tests</AssemblyName>
     <IsPackable>false</IsPackable>

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <AssemblyName>FlaUIRecorder.CodeProvider.PowerShell</AssemblyName>
     <RootNamespace>FlaUIRecorder.CodeProvider.PowerShell</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

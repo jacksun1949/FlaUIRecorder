@@ -49,7 +49,9 @@ namespace FlaUIRecorder.Internal.Worker
             if ((DateTime.UtcNow - _lastEventUtc).TotalMilliseconds >= HealthCheckIntervalMs)
             {
                 _warningFired = true;
-                StatusChanged?.Invoke(this, $"{_hookName} hook may not be active");
+                var message = $"{_hookName} hook may not be active";
+                RecorderErrorLog.RecordError(new TimeoutException(message), $"HookHealthMonitor.{_hookName}");
+                StatusChanged?.Invoke(this, message);
             }
         }
 
