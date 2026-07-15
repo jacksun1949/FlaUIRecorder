@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <AssemblyName>CC_FlaUIAutomationRecoder.CodeProvider.PowerShell</AssemblyName>
+    <RootNamespace>CC_FlaUIAutomationRecoder.CodeProvider.PowerShell</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CC_FlaUIAutomationRecoder.CodeProvider.Common\CC_FlaUIAutomationRecoder.CodeProvider.Common.csproj" />
+  </ItemGroup>
+</Project>

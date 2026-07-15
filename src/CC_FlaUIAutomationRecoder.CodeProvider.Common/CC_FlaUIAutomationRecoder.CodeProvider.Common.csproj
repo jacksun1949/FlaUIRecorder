@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <AssemblyName>CC_FlaUIAutomationRecoder.CodeProvider.Common</AssemblyName>
+    <RootNamespace>CC_FlaUIAutomationRecoder.CodeProvider.Common</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+  </ItemGroup>
+</Project>

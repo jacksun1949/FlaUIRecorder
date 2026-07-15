@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <RootNamespace>CC_FlaUIAutomationRecoder.CodeProvider.CSharp.Tests</RootNamespace>
+    <AssemblyName>CC_FlaUIAutomationRecoder.CodeProvider.CSharp.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CC_FlaUIAutomationRecoder.CodeProvider.Common\CC_FlaUIAutomationRecoder.CodeProvider.Common.csproj" />
+    <ProjectReference Include="..\..\CC_FlaUIAutomationRecoder.CodeProvider.CSharp\CC_FlaUIAutomationRecoder.CodeProvider.CSharp.csproj" />
+    <ProjectReference Include="..\CC_FlaUIAutomationRecoder.Tests.Common\CC_FlaUIAutomationRecoder.Tests.Common.csproj" />
+  </ItemGroup>
+</Project>
